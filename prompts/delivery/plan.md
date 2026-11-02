@@ -87,7 +87,7 @@ Carry forward candidates already present in the conversation/plan, merge duplica
 ]
 ```
 
-This list carries candidates forward to `/implement` for staging/promotion without treating them as durable knowledge during planning.
+This list carries candidates forward to `/implement` without treating them as durable knowledge during planning. Show the candidate proposals once in the human-readable plan under `Task-local learning handoff`; do not repeat the full checkpoint JSON in the conversation. The checkpoint is a transient serialization of the approved plan, including those already-reviewed handoff candidates—not a second plan or new decision. The final yes/no approval authorizes writing that exact checkpoint only. A read-only initialization/orientation boundary does not prohibit the approved checkpoint write. Do not modify application source during `/plan`.
 
 Do not write persona-owned memory, session logs, or project records automatically. A plan checkpoint artifact may be written after explicit user approval at the end of /plan, and must be read and deleted by /implement on completion. The checkpoint is transient and does not persist beyond the current phase. Durable knowledge is a separate user-approved operation through the project's existing gate.
 
@@ -101,7 +101,7 @@ Planning remains non-persistent. Keep deduplicated, source-checked candidate pro
 
 If a decision materially blocks a safe plan, pause and ask the focused question before finalizing. Otherwise present the complete plan, including validation and the task-local learning handoff, and ask one consolidated question:
 
-> Do you approve this plan? Approval covers planning decisions and the stated scope only; implementation requires a separate explicit `/implement` invocation.
+> Do you approve this plan and authorize writing its transient `plan-checkpoint.json` handoff? This authorizes only the approved plan and checkpoint; implementation still requires a separate explicit `/implement` invocation.
 
 Do not add a second design-approval prompt after the complete plan unless a material new decision arises. Do not start implementation, mutate files, or invoke another workflow from this prompt.
 
@@ -134,8 +134,8 @@ Do not add a second design-approval prompt after the complete plan unless a mate
 [Source-linked candidates with scope/status, or "None"]
 
 ### Approval
-[One consolidated plan-approval question; implementation requires a separate explicit `/implement` invocation.]
-If approved, write `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` (transient; schema in `AgenticLab/prompts/delivery/checkpoint.md`) containing the approved scope, validation, stop conditions, and decisions. Do not persist rule contents or customer/cart data in the checkpoint.
+[One concise yes/no question approving the plan and its transient checkpoint write; implementation requires a separate explicit `/implement` invocation. Do not append the full checkpoint JSON to the conversation.]
+If approved, write `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` as a mechanical serialization of the approved plan (schema in `AgenticLab/prompts/delivery/checkpoint.md`), including the task-local `handoff_candidates` already shown above. Do not introduce new decisions or candidate content during serialization. This plan approval authorizes this one checkpoint write; do not ask a redundant second write-confirmation question. Do not persist secrets, raw transcripts, or customer data in the checkpoint.
 ```
 
 ## Prototype limitation

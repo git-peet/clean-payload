@@ -9,7 +9,7 @@ Purpose: Carry an approved plan across `/plan` and `/implement` without relying 
 
 Location: `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` at the workspace root.
 
-Lifecycle: `/plan` creates it only after explicit user approval. `/implement` reads it at start and retains it by default. At completion, the user explicitly chooses whether to keep it for `/premortem` or approve its deletion. It is workflow state, not durable project knowledge, and is not retrieved by `readKnowledgeRecords`.
+Lifecycle: `/plan` creates it only after explicit user approval. `/implement` reads it at start and retains it by default. At completion, the user explicitly chooses whether to keep it for `/premortem` or approve its deletion. It is workflow state, not durable project knowledge, and is not retrieved by `readKnowledgeRecords`. This single approved checkpoint write is an explicit `/plan` exception to read-only source inspection; it does not authorize application edits or other writes.
 
 Schema:
 ```json

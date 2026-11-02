@@ -209,9 +209,14 @@ function getFileChangePreview(toolName, input) {
 export function classifyKnowledgeMutation(toolName, input, cwd) {
   if (toolName === "write" || toolName === "edit") {
     const protectedPath = resolveKnowledgePath(cwd, input?.path);
+    // Exception: only the exact plan-checkpoint.json path is the transient handoff
+    // shown in the complete /plan preview. Approval of that plan authorizes this
+    // one checkpoint write; do not ask for a redundant second confirmation.
+    const planCheckpointPath = path.resolve(cwd, "AgenticLab", "knowledge", "checkpoints", "plan-checkpoint.json");
+    if (protectedPath === planCheckpointPath) return null;
     // Exception: premortem-checkpoint.json is a transient record written after
     // the separate Step 1 approval in /premortem. It does not need a second gate.
-    if (protectedPath && (protectedPath.endsWith("premortem-checkpoint.json") || protectedPath.includes("checkpoints/premortem-checkpoint.json"))) return null;
+    if (protectedPath && (protectedPath.endsWith("premortem-checkpoint.json") || protectedPath.includes(path.join("checkpoints", "premortem-checkpoint.json")))) return null;
     // Exception: implementation-log is a transient session-level record written after
     // /implement completes with user approval via the autonomous implementation-log
     // auto-trigger gate. It must not block persistent knowledge-base writes.

@@ -12,7 +12,7 @@ These instructions apply when this AgenticLab system payload is installed in a t
 - Both paths use the same project scope, knowledge, authorization, and verification contract.
 - At the start of a fresh workspace session, read `AgenticLab/PROJECT-SCOPE.md` and, if present, `AgenticLab/PROJECT-OVERVIEW.md`. The overview is a compact source-derived navigation profile, not authority or current truth; verify relevant mutable facts against current source. If the overview is absent, do not perform a broad orientation scan automatically—suggest the user-invoked initialization prompt when useful.
 - Before consequential work, identify the actual project/workspace scope, current source state, and what authorization is needed.
-- Answering a question or proposing a plan is not permission to edit files, run a mutating command, or widen scope.
+- Answering a question or proposing a plan is not permission to edit files, run a mutating command, or widen scope. Conversely, a direct, specific user request authorizes the bounded action it names; do not require a permanent scope-file refresh solely to honor that one task-specific authorization. This does not grant blanket future permission or bypass independent approval gates for durable knowledge, migrations/database changes, destructive operations, package installation, or external network access.
 - Relaying a workflow invocation to another session is not user invocation. Relay only on explicit user request, quote that request verbatim, and label the relay as such. Never convert a user question into a relayed invocation.
 
 ## 2. Use project knowledge selectively
