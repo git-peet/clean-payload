@@ -336,7 +336,7 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
   pi.registerTool({
     name: "promoteKnowledgeCandidate",
     label: "Review and promote one pending knowledge candidate",
-    description: "Promote one selected, reviewed pending candidate into the existing active knowledge collection. Requires one UI confirmation, creates one new active record, never overwrites existing records, and leaves every other pending candidate untouched.",
+    description: "Show a concise action summary and ask for UI confirmation before promoting one selected, reviewed pending candidate. Declining leaves it pending; approval creates one new active record unless an identical active record already exists.",
     parameters: Type.Object({
       id: Type.String({ minLength: 1, maxLength: 64, pattern: "^[a-z0-9](?:[a-z0-9-]{1,62}[a-z0-9])?$" }),
     }, { additionalProperties: false }),
@@ -346,7 +346,7 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
       }
       if (!ctx?.hasUI || typeof ctx.ui?.confirm !== "function") throw new Error("Candidate promotion requires an available Pi UI confirmation");
       const result = await promoteCandidate(ctx.cwd, params.id, (preview) => ctx.ui.confirm(
-        "Promote this knowledge candidate?",
+        "Confirm this knowledge action? Declining leaves the candidate pending.",
         preview,
       ), { expectedRoot, hooks });
       if (result.status === "rejected") return textResult("Promotion was rejected. The candidate remains pending and no active record was created.", result);
@@ -439,6 +439,9 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
       return textResult(JSON.stringify(summary, null, 2), summary);
     },
   });
+  // NOTE: This is an adapter-level workspace command (not a CLI subcommand).
+  // Invoke via Pi runtime session: pi "knowledge-opt-in" or at the interactive prompt.
+  // Do not run as `knowledge-opt-in` at the shell — it requires the Pi adapter context.
   pi.registerCommand("knowledge-opt-in", {
     description: "Explicitly enable private pending-candidate staging for the configured workspace scope",
     handler: async (_args, ctx) => {

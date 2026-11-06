@@ -763,28 +763,34 @@ export async function promotePending(cwd, confirm, { expectedRoot = PILOT_WORKSP
   });
 }
 
+function compactPreviewText(value, maxLength) {
+  const normalized = String(value).replace(/\s+/gu, " ").trim();
+  const characters = Array.from(normalized);
+  return characters.length <= maxLength ? normalized : `${characters.slice(0, maxLength - 1).join("")}…`;
+}
+
 export function renderCandidatePromotionPreview(record, { alreadyActive = false, activeLocation } = {}) {
   const location = alreadyActive && activeLocation
     ? activeLocation
     : `AgenticLab/knowledge/${RECORDS_DIR}/${record.id}.md`;
+  const source = `${record.source.kind}: ${record.source.reference}${record.source.revision ? ` (revision ${record.source.revision})` : ""}`;
   const parts = [
     alreadyActive
-      ? `Confirm cleanup of pending candidate ${record.id}; an identical active record already exists.`
-      : `Promote one pending candidate (${record.id}) into the existing active knowledge collection.`,
-    `Target: ${location}`,
-    `Scope: ${record.scope}`,
+      ? `Remove duplicate pending candidate ${record.id}?`
+      : `Approve candidate ${record.id} as active knowledge?`,
+    `Title: ${compactPreviewText(record.title, 80)}`,
+    `Scope/category: ${record.scope} / ${record.category}`,
+    `Claim: ${compactPreviewText(record.claim, 180)}`,
+    `Source: ${compactPreviewText(source, 120)}`,
+    `Verified: ${record.verified}`,
     alreadyActive
-      ? "No active record will be written or changed; only the duplicate pending copy will be removed."
-      : "The operation adds exactly one new record. Existing active records, INDEX.md, and topic maps will not be changed.",
-    "Other pending candidates will remain pending. Promotion requires this explicit confirmation.",
-    "",
-    "## Complete active record preview",
-    "```markdown",
-    renderActiveRecord(record).trimEnd(),
-    "```",
+      ? `An identical active record exists at ${location}. Confirming removes only this pending duplicate; active knowledge is unchanged.`
+      : `Adds one active record at ${location}. Existing active records and maps are unchanged; this pending copy is consumed.`,
+    "Declining leaves the candidate pending.",
+    `For the complete record, cancel and use previewPendingKnowledgeCandidate for ${record.id}.`,
   ];
   const preview = parts.join("\n");
-  if (Buffer.byteLength(preview, "utf8") > MAX_PREVIEW_BYTES) fail(`complete candidate promotion preview exceeds ${MAX_PREVIEW_BYTES} bytes`);
+  if (Buffer.byteLength(preview, "utf8") > MAX_PREVIEW_BYTES) fail(`candidate promotion confirmation summary exceeds ${MAX_PREVIEW_BYTES} bytes`);
   return preview;
 }
 
