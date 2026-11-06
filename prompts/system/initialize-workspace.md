@@ -235,6 +235,8 @@ In the fresh trusted process, the project instructions should load normally. If 
 - `PROJECT-SCOPE.md` and the overview are directed to be read at fresh-session start; the scope contains only project identity, included areas, and explicit permanent exclusions, with no initialization-only restriction or task authorization matrix;
 - `AgenticLab/knowledge/INDEX.md` exists as a scope-aware router and `AgenticLab/knowledge/records/` exists as an empty canonical destination unless preexisting content was preserved;
 - `AgenticLab/config/knowledge-capture-policy.json` exists with `project` equal to the confirmed stable project key and `scope` equal to `project:<key>` in `PROJECT-SCOPE.md`, staging disabled, no unapproved project-specific triggers, and metrics off unless explicitly opted in;
+
+**Enabling staging later:** If staging was disabled during init, enable it via the Pi runtime session with `pi "knowledge-opt-in"` (adapter command, not a CLI subcommand — do not run at shell); this sets `pendingStagingEnabled: true`.
 - no active knowledge record or host application path was created or changed.
 
 If `PROJECT-OVERVIEW.md` was just created, a bounded fresh-session read check verifies availability, not general delivery benefit.
