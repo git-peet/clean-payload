@@ -3,9 +3,9 @@ description: Build a scoped implementation plan with evidence, validation, and a
 argument-hint: "[PBI or task context]"
 ---
 
-# V5 `/plan` Workflow — First Prototype
+# AgenticLab `/plan` Workflow
 
-**Status:** Prompt prototype for design/testing; an initialized Pi workspace registers this template as opt-in `/plan`. Registration does not auto-run it.
+**Status:** Opt-in planning workflow. Initialization registers this template as `/plan`; registration makes it available but does not execute it.
 
 ## Purpose and boundary
 
@@ -138,6 +138,6 @@ Do not add a second design-approval prompt after the complete plan unless a mate
 If approved, write `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` as a mechanical serialization of the approved plan (schema in `AgenticLab/prompts/delivery/checkpoint.md`), including the task-local `handoff_candidates` already shown above. Do not introduce new decisions or candidate content during serialization. This plan approval authorizes this one checkpoint write; do not ask a redundant second write-confirmation question. Do not persist secrets, raw transcripts, or customer data in the checkpoint.
 ```
 
-## Prototype limitation
+## Scope and limitations
 
-This file is a prompt artifact for manual testing. Pi slash-command registration, project settings, a workflow router, `/implement`, and `/premortem` runtime files are not part of this prototype.
+This is a planning-only workflow. It produces a reviewable plan and, after explicit approval, may write its approved transient checkpoint. It does not implement application changes, run commands or tests, persist durable knowledge, or invoke another workflow automatically. `/implement` and `/premortem` remain separately invoked workflows; no automatic router is provided.

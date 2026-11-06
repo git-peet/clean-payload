@@ -190,7 +190,7 @@ function pruneReviews(reviews, timestamp, ttlMs) {
 
 export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRoot = PILOT_WORKSPACE_ROOT, hooks = {}, now = () => Date.now(), reviewTtlMs = REVIEW_TTL_MS } = {}) {
   if (!Type?.Object || !Type?.String || !Type?.Literal || !Type?.Array || !Type?.Optional || typeof StringEnum !== "function") {
-    throw new Error("A compatible Pi TypeBox and StringEnum API is required to register pilot knowledge tools");
+    throw new Error("A compatible Pi TypeBox and StringEnum API is required to register knowledge-capture tools");
   }
   if (typeof now !== "function" || !Number.isSafeInteger(reviewTtlMs) || reviewTtlMs <= 0) {
     throw new Error("transient triage review clock and expiry must be valid");
@@ -463,11 +463,14 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
         await setCaptureEnabled(ctx.cwd, true, { expectedRoot });
         notify(ctx, `Pending candidate staging enabled for ${policy.scope}. No candidate was staged.`, "success");
       } catch (error) {
-        notify(ctx, `Could not enable pilot candidate staging: ${error.message}`, "error");
+        notify(ctx, `Could not enable workspace candidate staging: ${error.message}`, "error");
       }
     },
   });
 
+  // NOTE: This is an adapter-level workspace command (not a CLI subcommand).
+  // Invoke via Pi runtime session: pi "knowledge-opt-out" or at the interactive prompt.
+  // Do not run as `knowledge-opt-out` at the shell — it requires the Pi adapter context.
   pi.registerCommand("knowledge-opt-out", {
     description: "Revoke private pending-candidate staging for the configured workspace scope",
     handler: async (_args, ctx) => {
@@ -479,7 +482,7 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
         }
         const accepted = await askOnce(
           ctx,
-          "Revoke pilot candidate-staging opt-in?",
+          "Disable workspace candidate staging?",
           "This disables further candidate staging in this workspace. Existing pending candidates will remain untouched and inactive.",
         );
         if (!accepted) {
@@ -489,7 +492,7 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
         await setCaptureEnabled(ctx.cwd, false, { expectedRoot });
         notify(ctx, "Pending candidate staging disabled. Existing pending candidates were left untouched.", "success");
       } catch (error) {
-        notify(ctx, `Could not revoke pilot candidate staging: ${error.message}`, "error");
+        notify(ctx, `Could not disable workspace candidate staging: ${error.message}`, "error");
       }
     },
   });

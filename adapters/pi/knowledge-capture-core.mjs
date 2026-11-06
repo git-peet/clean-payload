@@ -121,7 +121,7 @@ function validateSource(source) {
 
 export function validateCandidate(candidate, expectedScope = PILOT_SCOPE) {
   if (!isPlainObject(candidate) || !hasOnlyKeys(candidate, RECORD_KEYS) || RECORD_KEYS.some((key) => !(key in candidate))) {
-    fail("candidate does not match the strict pilot knowledge-record schema");
+    fail("candidate does not match the strict workspace knowledge-record schema");
   }
   if (typeof candidate.id !== "string" || !/^[a-z0-9](?:[a-z0-9-]{1,62}[a-z0-9])?$/u.test(candidate.id)) {
     fail("candidate.id must be a lowercase, path-safe stable identifier");
@@ -178,16 +178,16 @@ export async function resolvePilotLocations(cwd, expectedRoot = PILOT_WORKSPACE_
   try {
     [realCwd, realExpected] = await Promise.all([fs.realpath(cwd), fs.realpath(expectedRoot)]);
   } catch {
-    fail("pilot workspace root is unavailable");
+    fail("configured workspace root is unavailable");
   }
-  if (path.resolve(cwd) !== realCwd || realCwd !== realExpected) fail("this pilot tool is restricted to its configured workspace root");
+  if (path.resolve(cwd) !== realCwd || realCwd !== realExpected) fail("this tool is restricted to its configured workspace root");
   const workspaceStat = await fs.lstat(realCwd);
   if (!workspaceStat.isDirectory() || workspaceStat.isSymbolicLink()) fail("workspace root must be a real directory, not a symlink");
 
   const agenticDir = path.join(realCwd, "AgenticLab");
   const agenticStat = await lstatOrNull(agenticDir);
   if (!agenticStat || !agenticStat.isDirectory() || agenticStat.isSymbolicLink() || await fs.realpath(agenticDir) !== agenticDir) {
-    fail("AgenticLab must be a real directory inside the pilot workspace");
+    fail("AgenticLab must be a real directory inside the configured workspace");
   }
   const configDir = path.join(agenticDir, "config");
   const configStat = await lstatOrNull(configDir);
@@ -266,12 +266,12 @@ function parsePolicy(value, workspaceRoot) {
 async function loadPolicy(locations) {
   const stat = await lstatOrNull(locations.policyPath);
   if (!stat) return { schemaVersion: 1, project: PILOT_PROJECT, workspaceRoot: locations.workspaceRoot, pendingStagingEnabled: true, scope: PILOT_SCOPE, missing: true };
-  if (!stat.isFile() || stat.isSymbolicLink()) fail("pilot capture policy must be a regular, non-symlink file");
+  if (!stat.isFile() || stat.isSymbolicLink()) fail("workspace capture policy must be a regular, non-symlink file");
   let parsed;
   try {
     parsed = JSON.parse(await readBoundedRegularFile(locations.policyPath, 2048));
   } catch (error) {
-    if (error instanceof SyntaxError) fail("pilot capture policy is invalid JSON; staging is disabled");
+    if (error instanceof SyntaxError) fail("workspace capture policy is invalid JSON; staging is disabled");
     throw error;
   }
   return parsePolicy(parsed, locations.workspaceRoot);
@@ -279,7 +279,7 @@ async function loadPolicy(locations) {
 
 async function writePolicy(locations, enabled) {
   const current = await loadPolicy(locations);
-  if (current.missing) fail("pilot capture policy file is missing; opt-in cannot create or replace it");
+  if (current.missing) fail("workspace capture policy file is missing; opt-in cannot create or replace it");
   const tempPath = path.join(path.dirname(locations.policyPath), `.knowledge-capture-policy-${randomUUID()}.tmp`);
   const preservedPolicy = { ...current };
   delete preservedPolicy.missing;
@@ -292,7 +292,7 @@ async function writePolicy(locations, enabled) {
     await handle.close();
     handle = undefined;
     const currentStat = await lstatOrNull(locations.policyPath);
-    if (!currentStat || !currentStat.isFile() || currentStat.isSymbolicLink()) fail("pilot capture policy changed unexpectedly");
+    if (!currentStat || !currentStat.isFile() || currentStat.isSymbolicLink()) fail("workspace capture policy changed unexpectedly");
     await fs.rename(tempPath, locations.policyPath);
   } catch (error) {
     if (handle) await handle.close().catch(() => {});
@@ -647,12 +647,12 @@ function pendingSnapshot(records) {
 
 async function activeRootIsAbsent(locations) {
   const stat = await lstatOrNull(locations.activeRoot);
-  if (stat) fail("active AgenticLab/knowledge already exists; this pilot does not merge or repeat promotion");
+  if (stat) fail("active AgenticLab/knowledge already exists; this operation does not merge or repeat promotion");
 }
 
 async function assertPromotionNotCommitted(locations) {
   const stat = await lstatOrNull(locations.promotionMarkerPath);
-  if (stat) fail("a promotion is already committed or has an incomplete commit marker; this pilot does not repeat promotion");
+  if (stat) fail("a promotion is already committed or has an incomplete commit marker; this operation does not repeat promotion");
 }
 
 async function writeCommittedMarker(locations) {

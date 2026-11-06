@@ -1,6 +1,6 @@
-# AgenticLab Knowledge Contract — First Slice
+# Knowledge Contract
 
-**Status:** Minimal, human-reviewable record shape for one workspace experiment.
+**Status:** Human-reviewable record format and lifecycle contract for workspace-scoped knowledge.
 
 ## Project boundary
 

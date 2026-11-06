@@ -72,7 +72,7 @@ export async function classifyPendingAccess(toolName, input, cwd) {
         toolName,
         target,
         protectedRoot: pendingRoot,
-        reason: "AgenticLab knowledge-pending is a private queue. Built-in file tools cannot read, search, list, edit, or write it; use the dedicated pilot batch tools.",
+        reason: "AgenticLab knowledge-pending is a private queue. Built-in file tools cannot read, search, list, edit, or write it; use the dedicated knowledge-capture tools.",
       };
     }
   }

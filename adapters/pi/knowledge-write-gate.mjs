@@ -16,7 +16,7 @@ export function registerKnowledgeWriteGate(pi) {
     if (!await shellReferencesKnowledge(ctx.cwd, event.command)) return undefined;
     return {
       result: {
-        output: "Blocked shell access to AgenticLab project knowledge, the private pending queue, or pilot capture policy.",
+        output: "Blocked shell access to AgenticLab knowledge, the private pending queue, or workspace capture policy.",
         exitCode: 126,
         cancelled: false,
         truncated: false,
@@ -42,7 +42,7 @@ export function registerKnowledgeWriteGate(pi) {
     if ((toolName === "bash" || toolName === "user_bash") && await shellReferencesKnowledge(ctx.cwd, command)) {
       return {
         block: true,
-        reason: "Shell access to AgenticLab project knowledge, the private pending queue, and pilot capture policy is blocked.",
+        reason: "Shell access to AgenticLab knowledge, the private pending queue, and workspace capture policy is blocked.",
       };
     }
 
@@ -74,7 +74,7 @@ export function registerKnowledgeWriteGate(pi) {
     if (policyMutation) {
       return {
         block: true,
-        reason: "Pilot capture policy and promotion state are tool-managed; direct built-in writes and edits are blocked.",
+        reason: "Workspace capture policy and promotion state are tool-managed; direct built-in writes and edits are blocked.",
       };
     }
 
@@ -89,7 +89,7 @@ export function registerKnowledgeWriteGate(pi) {
     }
 
     if (await captureTransactionLocked(ctx.cwd)) {
-      return { block: true, reason: "An atomic pilot knowledge transaction is in progress; active knowledge writes are temporarily blocked." };
+      return { block: true, reason: "An atomic knowledge transaction is in progress; active knowledge writes are temporarily blocked." };
     }
 
     if (!ctx.hasUI) {
@@ -111,7 +111,7 @@ export function registerKnowledgeWriteGate(pi) {
     const decision = decideKnowledgeMutation(request, true, approved);
     if (!decision.allow) return { block: true, reason: decision.reason };
     if (await captureTransactionLocked(ctx.cwd)) {
-      return { block: true, reason: "An atomic pilot knowledge transaction began during confirmation; active knowledge write blocked." };
+      return { block: true, reason: "An atomic knowledge transaction began during confirmation; active knowledge write blocked." };
     }
     return undefined;
   });

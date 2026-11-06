@@ -3,9 +3,9 @@ description: Execute an approved plan within its stated scope and verify the res
 argument-hint: "[approved plan or task context]"
 ---
 
-# V5 `/implement` Workflow — First Prototype
+# AgenticLab `/implement` Workflow
 
-**Status:** Prompt prototype for design/testing; an initialized Pi workspace registers this template as opt-in `/implement`. Registration does not auto-run it; a separate user invocation with an approved plan is required.
+**Status:** Opt-in implementation workflow. Run only after explicit invocation with an approved plan; registration makes it available but does not execute it.
 
 ## Purpose and authority
 

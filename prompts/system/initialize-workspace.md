@@ -19,7 +19,7 @@ Prepare five distinct things:
 4. **Knowledge navigation scaffold** — a stable `AgenticLab/knowledge/INDEX.md` router and an empty `AgenticLab/knowledge/records/` destination when absent. This is structure only; it does not seed, promote, or synthesize records.
 5. **Workspace capture policy** — `AgenticLab/config/knowledge-capture-policy.json`, rendered from the generic template with the confirmed stable project key; staging starts disabled, metrics default off unless the user explicitly opts in, and project-specific triggers are empty.
 
-This flow does not install or refresh the AgenticLab payload, run the application/tests, seed or promote AgenticLab knowledge records, import V4 knowledge, or build Graphify, semantic maps, symbol indexes, MOCs, or a DIGEST. It does not create or update files in the host application's paths. Do not access `.env`, secrets, protected `data/`, backups, production/customer data, dependencies, generated output, databases, or the network unless a separate task explicitly authorizes an exact path/action. Do not use shell for project discovery by default.
+This flow does not install or refresh the AgenticLab payload, run the application/tests, seed or promote AgenticLab knowledge records, import knowledge from another workspace or prior installation, or build Graphify, semantic maps, symbol indexes, MOCs, or a DIGEST. It does not create or update files in the host application's paths. Do not access `.env`, secrets, protected `data/`, backups, production/customer data, dependencies, generated output, databases, or the network unless a separate task explicitly authorizes an exact path/action. Do not use shell for project discovery by default.
 
 The user explicitly invoked setup, but that is **not** blanket approval for file writes. First confirm scope, then perform bounded read-only orientation. Use safe defaults for optional configuration choices unless the user explicitly opts in. Prepare the exact proposed setup changes and show the complete preview in the conversation. **Do not call any file-writing tool before the preview has been shown and the user has explicitly approved it in a subsequent message.** End the preview with one short approval question and wait. If the user rejects, requests changes, or has not yet approved, write nothing; revise and show a new preview if requested. After approval, use the normal project file tools to write only the approved setup files.
 
@@ -155,7 +155,7 @@ Do not reference `wiki/index.md` here — the knowledge-system index is `Agentic
 [Paths supporting the summary]
 ```
 
-Do not set an arbitrary token limit; make it compact enough to be read in a fresh session. Do not copy scope rules into it as authority, duplicate decision rationale from records, or populate V4 persona memories, `SYSTEM_CORE.md`, DIGEST, Graphify, symbol/semantic indexes, or experience records. If a durable non-source-derived decision is uncovered, report it separately as a candidate for the future knowledge interface; do not save it here.
+Do not set an arbitrary token limit; make it compact enough to be read in a fresh session. Do not copy scope rules into it as authority, duplicate decision rationale from records, or populate persona-memory files, `SYSTEM_CORE.md`, DIGEST, Graphify, symbol/semantic indexes, or experience records. If a durable non-source-derived decision is uncovered, report it separately as a candidate for the future knowledge interface; do not save it here.
 
 ## Step 5 — Prepare local Pi wiring
 

@@ -3,9 +3,9 @@ description: Inspect a specified implementation for high-impact or silent assump
 argument-hint: "[files, diff, or task scope]"
 ---
 
-# AgenticLab `/premortem` Workflow — First Prototype
+# AgenticLab `/premortem` Workflow
 
-**Status:** Prompt prototype for design/testing; an initialized Pi workspace registers this template as opt-in `/premortem`. Registration does not auto-run it. This is read-only analysis, not code review or authorization to fix.
+**Status:** Opt-in, read-only analysis workflow. Run only after explicit invocation; registration makes it available but does not execute it. It is not code review or authorization to fix.
 
 ## Authorization preflight — READ THIS BEFORE PROCEEDING
 
