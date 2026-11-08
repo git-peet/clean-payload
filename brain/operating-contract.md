@@ -1,6 +1,6 @@
-# AgenticLab Operating Contract — First Slice
+# Operating Contract
 
-**Status:** Minimal product contract for the first vertical slice.
+**Status:** Behavioral contract for default work and explicitly invoked workflows.
 
 ## Work modes
 
@@ -8,7 +8,7 @@
 - **Explicit workflow:** the user deliberately invokes a named, approved procedure. A recommendation to use a workflow is not the same as invoking it.
 - In default work, infer intent from the requested outcome, not from the input format: a PBI or acceptance criteria alone do not imply implementation. Research-only work stays in default mode unless the user asks for a research workflow.
 - When the user has not chosen a mode and an available workflow would materially improve sequencing, coordination, or assurance, the default agent may make one concise recommendation with its reason and wait for the user's invocation/approval. Do not automatically enter the workflow. If the user explicitly invoked a workflow, begin it without asking again whether they want it. If research-versus-implementation intent is genuinely unclear, ask one focused clarification rather than stacking a clarification and workflow recommendation.
-- Both modes share scope, knowledge, safety, authorization, and verification semantics. This is a behavioral contract, not an automatic router; this slice does not port the V4 workflow suite.
+- Both modes share scope, knowledge, safety, authorization, and verification semantics. This contract defines shared behavior for default work and explicitly invoked workflows. It does not route tasks or select workflows automatically.
 
 ## Authority and scope
 
@@ -41,6 +41,6 @@
 
 Host application code must not contain AgenticLab sources, implementations, or direct imports. Any dependency on AgenticLab functionality must use a stable, versioned external interface that remains outside the host application's source tree. AgenticLab adapters, configuration, prompts, and `.pi/` wiring remain in the AgenticLab/workspace integration layer; do not copy or link them into application source. Any exception requires separate documented scope, justification, and expiry.
 
-## First-slice limitation
+## Scope and limitations
 
-This contract is used with one Pi workspace and one bounded project task. It does not establish multi-harness parity, general autonomous planning, broad specialist coordination, or a complete security boundary. Those require separate candidates and approvals.
+This contract governs behavior in the active workspace and selected workflow. It does not authorize automatic workflow selection, unrestricted access, or actions outside the user's approved scope.
