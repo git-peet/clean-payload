@@ -22,4 +22,3 @@ Copy this payload as `<workspace>/AgenticLab/`. Start Pi from the workspace root
 The generic policy template defaults candidate staging and metrics off and contains no workspace-specific scope or read triggers. Initialization keeps both off unless the user explicitly opts in, and previews the resulting policy with the confirmed project identity. Existing workspace policy and knowledge data must be preserved, not overwritten or imported from another project.
 
 After approved setup, restart Pi from the workspace root and grant project trust when prompted. Project extensions are executable code with the Pi process's permissions; they are not an OS sandbox.
-
