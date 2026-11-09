@@ -16,7 +16,7 @@ Prepare five distinct things:
 1. **Project scope** — user-confirmed project/subproject identity and boundaries in `AgenticLab/PROJECT-SCOPE.md`.
 2. **AgenticLab/Pi integration** — project-local `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`; never create or edit a workspace-root `AGENTS.md` or global Pi configuration.
 3. **Project orientation profile** — a concise, source-cited `AgenticLab/PROJECT-OVERVIEW.md`, separate from both scope and durable knowledge records.
-4. **Knowledge navigation scaffold** — a stable `AgenticLab/knowledge/INDEX.md` router and an empty `AgenticLab/knowledge/records/` destination when absent. This is structure only; it does not seed, promote, or synthesize records.
+4. **Knowledge navigation scaffold** — a stable `AgenticLab/knowledge/INDEX.md` router, an empty `AgenticLab/knowledge/records/` destination, an empty `AgenticLab/knowledge/maps/` directory, and a minimal `AgenticLab/knowledge/MOC-template.md` skeleton when absent. This is structure only; it does not seed, promote, or synthesize records, and does not create populated MOCs.
 5. **Workspace capture policy** — `AgenticLab/config/knowledge-capture-policy.json`, rendered from the generic template with the confirmed stable project key; staging starts disabled, metrics default off unless the user explicitly opts in, and project-specific triggers are empty.
 
 This flow does not install or refresh the AgenticLab payload, run the application/tests, seed or promote AgenticLab knowledge records, import knowledge from another workspace or prior installation, or build Graphify, semantic maps, symbol indexes, MOCs, or a DIGEST. It does not create or update files in the host application's paths. Do not access `.env`, secrets, protected `data/`, backups, production/customer data, dependencies, generated output, databases, or the network unless a separate task explicitly authorizes an exact path/action. Do not use shell for project discovery by default.
@@ -198,9 +198,11 @@ If either `.pi` file already contains equivalent AgenticLab guidance, leave it i
 
 After project scope is confirmed, prepare the following additive scaffold:
 
-- If `AgenticLab/knowledge/INDEX.md` is absent, propose a new stable router using the confirmed workspace scope. It must identify `records/` as the canonical destination for newly promoted project records, explain that `readKnowledgeRecords` searches the active knowledge tree recursively (including legacy root-level active records during migration), and state that a complete eligible-corpus scan—not map membership—is required for no-match.
+- If `AgenticLab/knowledge/INDEX.md` is absent, propose a new stable router using the confirmed workspace scope. It must identify `records/` as the canonical destination for newly promoted project records, explain that `readKnowledgeRecords` searches the active knowledge tree recursively (including legacy root-level active records during migration), state that a complete eligible-corpus scan—not map membership—is required for no-match, and include a note that topic maps may be added under `maps/` when a navigation need is established.
 - If `AgenticLab/knowledge/INDEX.md` already exists, preserve it. If its stated scope conflicts with the confirmed scope or its routing is materially misleading, stop and show the conflict; do not silently replace it during initialization.
 - If `AgenticLab/knowledge/records/` is absent, propose an empty directory scaffold with a zero-byte `AgenticLab/knowledge/records/.gitkeep` marker so the directory survives workspace copying. If it exists, preserve its contents.
+- If `AgenticLab/knowledge/maps/` is absent, propose an empty directory scaffold with a zero-byte `AgenticLab/knowledge/maps/.gitkeep` marker so the directory survives workspace copying. If it exists, preserve its contents.
+- If `AgenticLab/knowledge/MOC-template.md` is absent, propose a minimal blank MOC skeleton referencing `records/` as the collection. The template follows the structure defined in `AgenticLab/brain/knowledge-contract.md` (topic MOC/map template). It is a scaffold only — not a populated MOC.
 - Do not list or copy active records, pending candidates, checkpoints, metrics, or user notes into the scaffold. Do not create MOCs until a real navigation need is established. This initialization step creates routing/structure only, not durable knowledge.
 
 ## Step 6 — Present one complete initialization preview
@@ -215,6 +217,8 @@ The setup preview may include only:
 2. `AgenticLab/PROJECT-OVERVIEW.md`, with bounded coverage, actually inspected project-source paths, and known uncertainties.
 3. `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`, preserving/merging existing unrelated settings as shown in the preview.
 4. `AgenticLab/knowledge/INDEX.md` and, only when the records directory is absent, `AgenticLab/knowledge/records/.gitkeep` as a zero-byte marker. Preserve existing knowledge contents.
+5. `AgenticLab/knowledge/maps/.gitkeep` as a zero-byte marker (only when the maps directory is absent). Preserve existing contents.
+6. `AgenticLab/knowledge/MOC-template.md` as a minimal blank MOC skeleton (only when absent). The template follows the structure defined in `AgenticLab/brain/knowledge-contract.md`. It is a scaffold only — not a populated MOC.
 5. `AgenticLab/config/knowledge-capture-policy.json`, rendered from the generic template with `schemaVersion: 1`, the confirmed `project` and matching `scope: project:<key>`, staging disabled, empty triggers, and metrics disabled unless the user explicitly opted in.
 
 There must be no setup write before the user's explicit approval of the complete conversation preview. Do not treat answers to scope questions or optional configuration preferences as approval to write. Do not infer approval from silence, from the request to initialize, or from the user's review of a preview.
@@ -233,7 +237,7 @@ In the fresh trusted process, the project instructions should load normally. If 
 - the local knowledge-write extension is listed;
 - `/initialize-workspace`, `/plan`, `/implement`, and `/premortem` are registered and available for explicit invocation; none was run automatically;
 - `PROJECT-SCOPE.md` and the overview are directed to be read at fresh-session start; the scope contains only project identity, included areas, and explicit permanent exclusions, with no initialization-only restriction or task authorization matrix;
-- `AgenticLab/knowledge/INDEX.md` exists as a scope-aware router and `AgenticLab/knowledge/records/` exists as an empty canonical destination unless preexisting content was preserved;
+- `AgenticLab/knowledge/INDEX.md` exists as a scope-aware router and `AgenticLab/knowledge/records/` exists as an empty canonical destination unless preexisting content was preserved; if `AgenticLab/knowledge/maps/` exists, preserve its contents; if `AgenticLab/knowledge/MOC-template.md` exists, preserve its contents.
 - `AgenticLab/config/knowledge-capture-policy.json` exists with `project` equal to the confirmed stable project key and `scope` equal to `project:<key>` in `PROJECT-SCOPE.md`, staging disabled, no unapproved project-specific triggers, and metrics off unless explicitly opted in;
 
 **Enabling staging later:** If staging was disabled during init, enable it via the Pi runtime session with `pi "knowledge-opt-in"` (adapter command, not a CLI subcommand — do not run at shell); this sets `pendingStagingEnabled: true`.
