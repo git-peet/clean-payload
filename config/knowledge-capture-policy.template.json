@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "pendingStagingEnabled": false,
-  "metricsEnabled": false,
+  "metricsEnabled": true,
   "knowledgeReadTriggers": []
 }

@@ -17,7 +17,7 @@ import {
   validateCandidate,
   validateCandidateBatch,
 } from "./knowledge-capture-core.mjs";
-import { recordKnowledgeCaptureMetric } from "./knowledge-capture-metrics.mjs";
+import { recordContextSelectionMetric, recordKnowledgeCaptureMetric } from "./knowledge-capture-metrics.mjs";
 
 const REVIEW_TTL_MS = 30 * 60 * 1000;
 const MAX_REVIEWS = 32;
@@ -494,6 +494,29 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
       } catch (error) {
         notify(ctx, `Could not disable workspace candidate staging: ${error.message}`, "error");
       }
+    },
+  });
+
+  pi.registerTool({
+    name: "recordContextSelectionMetric",
+    label: "Record context-selection metric",
+    description: "Record a content-free context-selection metric for the current context assembly. Accepts an array of source-layer names, an optional boolean stop-rule flag, and an optional outcome string. Emits context_source_used, context_stop_rule_triggered, and context_assembly_complete events via the knowledge-capture metrics writer. Content-free only; never records source text or claims.",
+    parameters: Type.Object({
+      sourcesUsed: Type.Optional(Type.Array(Type.String({ minLength: 1, maxLength: 64 }), { maxItems: 10 })),
+      stopRuleFired: Type.Optional(Type.Boolean()),
+      outcome: Type.Optional(Type.String({ minLength: 1, maxLength: 64 })),
+    }, { additionalProperties: false }),
+    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      const { sourcesUsed, stopRuleFired, outcome, workspaceRoot } = params || {};
+      const sources = Array.isArray(sourcesUsed) ? sourcesUsed.filter((s) => typeof s === "string" && s.length > 0 && s.length <= 64) : [];
+      const stop = stopRuleFired === true;
+      const result = await recordContextSelectionMetric({
+        sourcesUsed: sources,
+        stopRuleFired: stop ? true : null,
+        outcome: outcome || null,
+        workspaceRoot: ctx?.cwd || ".",
+      });
+      return textResult(JSON.stringify({ recorded: result.recorded, reason: result.reason ?? null }), result);
     },
   });
 }

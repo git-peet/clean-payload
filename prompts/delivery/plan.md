@@ -7,6 +7,18 @@ argument-hint: "[PBI or task context]"
 
 **Status:** Opt-in planning workflow. Initialization registers this template as `/plan`; registration makes it available but does not execute it.
 
+## 0. Minimal context selection
+
+- **User request / objective / authorization** (always retained).
+- **Project knowledge** via INDEX/MOC route → scoped record metadata/status → eligible evidence only (on demand, when the task could benefit and scope/status filters pass).
+- **Current source/tests/docs** for present‑tense behavior (on demand).
+- **Stop rule**: assemble what is needed for the next decision or action; stop when sufficient to proceed and verify. If insufficient, retrieve relevant evidence or ask a focused clarification.
+
+## 1. Knowledge route and retrieval
+
+- read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms.
+- **Always call `readKnowledgeRecords` before source inspection** for each distinct topic, sub‑question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established.
+- The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no‑match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
 ## Purpose and boundary
 
 Use this workflow only when the user explicitly invokes `/plan` or approves a recommendation to use it. A PBI or acceptance criteria alone does not imply workflow invocation. If the requested outcome is research/findings only, stay in default work unless the user asks for a research plan.
@@ -40,13 +52,21 @@ Identify:
 
 Ask only for information that blocks a safe, useful plan. Group related blocking questions into one concise clarification. Do not require a numeric effort score or an artificial checklist where an item is inapplicable.
 
-## 2. Inspect proportionately
+## 2. Context metrics
+
+After context assembly and retrieval, invoke the context‑selection metric recorder (`recordContextSelectionMetric`) to emit content‑free context‑selection events (`context_source_used`, `context_stop_rule_triggered`, `context_assembly_complete`) per the knowledge‑capture metrics policy. Record the sources used and stop‑rule status; keep data content‑free (source‑layer names, booleans, outcome strings only).
+
+## 3. Checkpoint approval gate
+
+Present the complete plan and wait for explicit approval before writing its checkpoint. An existing checkpoint is not approval of the current plan, and permission to replace a checkpoint is not approval of the plan. If approval is not explicit, do not write or replace the checkpoint.
+
+## 4. Inspect proportionately
 
 Inspect the smallest relevant current-source surface and any scoped knowledge needed to plan. Distinguish source-verified facts, user-provided requirements, and inference. Cite paths or other evidence for material claims. Treat knowledge as evidence, not authorization; preserve the user's scope and existing protected-data boundaries.
 
 Create a concise surface map: relevant modules/files, current behavior, dependencies, and important external contracts. Use a domain perspective or procedure where it helps. Do not invoke a fixed persona chain; use an independent reviewer only if independent judgment materially improves the plan. Request UX/design input only when an actual UI decision is unresolved.
 
-## 3. Form the plan
+## 5. Form the plan
 
 Provide:
 1. Goal and intended result.
@@ -60,7 +80,7 @@ Provide:
 
 For risks in the proposed plan, perform a proportionate assumption check. For high-impact or silent integration-contract risks, include specific verification actions. A full code premortem is a separate review of code that exists; do not force it into every plan.
 
-## 4. Preserve learning provenance without writing memory
+## 6. Preserve learning provenance without writing memory
 
 At meaningful analysis/handoff points, record only potentially reusable findings in a **task-local learning handoff**. For each candidate include:
 - concise claim or decision;
@@ -97,7 +117,7 @@ Do not write persona-owned memory, session logs, or project records automaticall
 
 Planning remains non-persistent. Keep deduplicated, source-checked candidate proposals in the plan's task-local learning handoff; do not call triage, staging, or promotion tools, write candidate files, or emit `candidate_staged` during `/plan`. Carry proposals forward to a separately invoked `/implement`; any pending staging there is subject to workspace opt-in and the `/implement` instructions.
 
-## 5. Resolve blockers and request approval once
+## 7. Resolve blockers and request approval once
 
 If a decision materially blocks a safe plan, pause and ask the focused question before finalizing. Otherwise present the complete plan, including validation and the task-local learning handoff, and ask one consolidated question:
 
