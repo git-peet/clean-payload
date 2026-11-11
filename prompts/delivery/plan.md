@@ -19,6 +19,7 @@ argument-hint: "[PBI or task context]"
 - read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms.
 - **Always call `readKnowledgeRecords` before source inspection** for each distinct topic, sub‑question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established.
 - The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no‑match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
+
 ## Purpose and boundary
 
 Use this workflow only when the user explicitly invokes `/plan` or approves a recommendation to use it. A PBI or acceptance criteria alone does not imply workflow invocation. If the requested outcome is research/findings only, stay in default work unless the user asks for a research plan.
