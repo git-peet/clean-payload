@@ -14,10 +14,11 @@ const ALLOWED_EVENTS = new Set([
 
 // Stable, content-free source-layer identifiers; this list validates telemetry,
 // it does not select or load context.
-const ALLOWED_CONTEXT_SOURCES = new Set([
+export const CONTEXT_SOURCE_IDS = Object.freeze([
   "user_request",
   "operating_instructions",
   "current_source",
+  "project_scope",
   "project_knowledge",
   "domain_perspective",
   "workflow_prompt",
@@ -25,8 +26,9 @@ const ALLOWED_CONTEXT_SOURCES = new Set([
   "task_local_handoff",
   "project_orientation"
 ]);
+const ALLOWED_CONTEXT_SOURCES = new Set(CONTEXT_SOURCE_IDS);
 
-const ALLOWED_CONTEXT_OUTCOMES = new Set([
+export const CONTEXT_ASSEMBLY_OUTCOMES = Object.freeze([
   "complete",
   "not_needed",
   "no_match",
@@ -35,6 +37,7 @@ const ALLOWED_CONTEXT_OUTCOMES = new Set([
   "unavailable",
   "blocked"
 ]);
+const ALLOWED_CONTEXT_OUTCOMES = new Set(CONTEXT_ASSEMBLY_OUTCOMES);
 
 const ALLOWED_CONTEXT_EVENTS = new Set([
   "context_source_used",

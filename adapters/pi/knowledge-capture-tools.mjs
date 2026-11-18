@@ -17,7 +17,12 @@ import {
   validateCandidate,
   validateCandidateBatch,
 } from "./knowledge-capture-core.mjs";
-import { recordContextSelectionMetric, recordKnowledgeCaptureMetric } from "./knowledge-capture-metrics.mjs";
+import {
+  CONTEXT_ASSEMBLY_OUTCOMES,
+  CONTEXT_SOURCE_IDS,
+  recordContextSelectionMetric,
+  recordKnowledgeCaptureMetric,
+} from "./knowledge-capture-metrics.mjs";
 
 const REVIEW_TTL_MS = 30 * 60 * 1000;
 const MAX_REVIEWS = 32;
@@ -500,11 +505,11 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
   pi.registerTool({
     name: "recordContextSelectionMetric",
     label: "Record context-selection metric",
-    description: "Record a content-free context-selection metric for the current context assembly. Accepts an array of source-layer names, an optional boolean stop-rule flag, and an optional outcome string. Emits context_source_used, context_stop_rule_triggered, and context_assembly_complete events via the knowledge-capture metrics writer. Content-free only; never records source text or claims.",
+    description: "Record a content-free context-selection metric. Use only the source-layer IDs and outcomes in the parameter enums; pass semantic layer names, not file paths or tool names. Always include user_request and operating_instructions; include optional layers only when materially used. Mapping examples: plan checkpoint → approved_plan; project instructions → operating_instructions; project scope → project_scope; project overview → project_orientation; knowledge index/records → project_knowledge; adapter/source code → current_source only when materially used. Use complete for completed assembly; never send free-form text. Emits only the existing content-free context events.",
     parameters: Type.Object({
-      sourcesUsed: Type.Optional(Type.Array(Type.String({ minLength: 1, maxLength: 64 }), { maxItems: 10 })),
+      sourcesUsed: Type.Optional(Type.Array(StringEnum(CONTEXT_SOURCE_IDS), { maxItems: 10 })),
       stopRuleFired: Type.Optional(Type.Boolean()),
-      outcome: Type.Optional(Type.String({ minLength: 1, maxLength: 64 })),
+      outcome: Type.Optional(StringEnum(CONTEXT_ASSEMBLY_OUTCOMES)),
     }, { additionalProperties: false }),
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const { sourcesUsed, stopRuleFired, outcome, workspaceRoot } = params || {};
