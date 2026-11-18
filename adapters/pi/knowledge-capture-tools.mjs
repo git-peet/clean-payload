@@ -509,10 +509,9 @@ export function registerKnowledgeCaptureTools(pi, Type, StringEnum, { expectedRo
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const { sourcesUsed, stopRuleFired, outcome, workspaceRoot } = params || {};
       const sources = Array.isArray(sourcesUsed) ? sourcesUsed.filter((s) => typeof s === "string" && s.length > 0 && s.length <= 64) : [];
-      const stop = stopRuleFired === true;
       const result = await recordContextSelectionMetric({
         sourcesUsed: sources,
-        stopRuleFired: stop ? true : null,
+        stopRuleFired,
         outcome: outcome || null,
         workspaceRoot: ctx?.cwd || ".",
       });
