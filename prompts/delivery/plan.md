@@ -9,15 +9,19 @@ argument-hint: "[PBI or task context]"
 
 ## 0. Minimal context selection
 
-- **User request / objective / authorization** (always retained).
-- **Project knowledge** via INDEX/MOC route → scoped record metadata/status → eligible evidence only (on demand, when the task could benefit and scope/status filters pass).
-- **Current source/tests/docs** for present‑tense behavior (on demand).
-- **Stop rule**: assemble what is needed for the next decision or action; stop when sufficient to proceed and verify. If insufficient, retrieve relevant evidence or ask a focused clarification.
+Keep the current user request and shared operating/safety instructions. Add only what may materially help the next decision or action:
+- Current source, tests, and authoritative docs to verify present-tense behavior.
+- Project knowledge through INDEX/MOC routing and scoped retrieval when prior decisions or experience may change the answer.
+- A domain perspective or reusable procedure when it materially improves focus.
+- Project orientation when bootstrap or fresh-session guidance makes it relevant.
+- The workflow prompt and approved plan/checkpoint only for the explicitly invoked workflow or its resume; task-local learning handoff only when a meaningful reusable finding exists.
+
+Apply scope/status/freshness filters to retrieved knowledge. Stop when sufficient context is available to proceed and verify; retrieve more or ask a focused clarification only if something material is missing.
 
 ## 1. Knowledge route and retrieval
 
-- read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms.
-- **Always call `readKnowledgeRecords` before source inspection** for each distinct topic, sub‑question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established.
+- Only when prior project decisions or experience could materially change the plan, read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router; do not expect it to enumerate every record or contain duplicated trigger terms.
+- When project knowledge is relevant, call `readKnowledgeRecords` before source inspection for each distinct topic, sub‑question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established. If it is not relevant, skip both the INDEX and retrieval tool.
 - The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no‑match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
 
 ## Purpose and boundary
@@ -114,7 +118,7 @@ Do not write persona-owned memory, session logs, or project records automaticall
 
 ### Retrieval and task-local learning handoff
 
-0. **Knowledge route and retrieval** — read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms. **Always** call `readKnowledgeRecords` before source inspection for each distinct topic, sub-question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established. The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no-match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
+0. **Knowledge route and retrieval** — read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms. When project knowledge is relevant, call `readKnowledgeRecords` before source inspection for each distinct topic, sub-question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established. If it is not relevant, skip retrieval and make no no-match claim. The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no-match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
 
 Planning remains non-persistent. Keep deduplicated, source-checked candidate proposals in the plan's task-local learning handoff; do not call triage, staging, or promotion tools, write candidate files, or emit `candidate_staged` during `/plan`. Carry proposals forward to a separately invoked `/implement`; any pending staging there is subject to workspace opt-in and the `/implement` instructions.
 
