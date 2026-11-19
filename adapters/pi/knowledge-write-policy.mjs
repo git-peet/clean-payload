@@ -217,9 +217,8 @@ export function classifyKnowledgeMutation(toolName, input, cwd) {
     // Exception: premortem-checkpoint.json is a transient record written after
     // the separate Step 1 approval in /premortem. It does not need a second gate.
     if (protectedPath && (protectedPath.endsWith("premortem-checkpoint.json") || protectedPath.includes(path.join("checkpoints", "premortem-checkpoint.json")))) return null;
-    // Exception: implementation-log is a transient session-level record written after
-    // /implement completes with user approval via the autonomous implementation-log
-    // auto-trigger gate. It must not block persistent knowledge-base writes.
+    // Exception: implementation logs are standard outputs of an approved /implement
+    // scope and do not use the knowledge-record confirmation lifecycle.
     if (protectedPath && protectedPath.includes("AgenticLab/implementation-logs/")) return null;
     if (!protectedPath) return null;
     return {

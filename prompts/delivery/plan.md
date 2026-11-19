@@ -38,7 +38,7 @@ When describing scope, distinguish **this planning session** from the **proposed
 
 This workflow requires explicit authorization before any source inspection, planning, or analysis begins.
 
-- If this invocation was entered directly by the user, proceed after confirming the user's explicit intent to plan.
+- If the user directly invoked `/plan`, that invocation is explicit intent; proceed without asking them to confirm it again.
 - If this invocation was relayed from another agent (e.g., main session) rather than entered by the user, **do not proceed** until the relayed text carries the user's explicit request. If the relay does not quote the user's request verbatim and label the relay as such, ask the user for confirmation before proceeding.
 - A user question about planning ("can we plan X?", "is X feasible?") is **not** an instruction to plan. Answer the question first; begin planning only on explicit invocation or approval.
 - If the precondition does not hold, stop and ask the user to clarify their intent.
@@ -84,6 +84,8 @@ Provide:
 6. Risks, mitigations, and stop conditions.
 7. Acceptance/validation plan, including relevant tests and manual checks.
 8. A compact handoff sufficient for `/implement` without requiring rediscovery.
+9. For implementation plans, the standard log path `AgenticLab/implementation-logs/<workspace-key>/<task-slug>/implementation-log.md` as a proposed `/implement` output. `/implement` writes this log as part of the approved plan scope without a separate post-run approval; the `/plan` approval still authorizes only the transient checkpoint.
+10. When the plan has reusable task-local candidates, state that eligible candidates may be auto-staged during `/implement` if `pendingStagingEnabled` is true; they remain inactive and promotion requires explicit review. If staging is disabled, candidates remain task-local without a per-run staging question.
 
 For risks in the proposed plan, perform a proportionate assumption check. For high-impact or silent integration-contract risks, include specific verification actions. A full code premortem is a separate review of code that exists; do not force it into every plan.
 
@@ -114,15 +116,15 @@ Carry forward candidates already present in the conversation/plan, merge duplica
 ]
 ```
 
-This list carries candidates forward to `/implement` without treating them as durable knowledge during planning. Show the candidate proposals once in the human-readable plan under `Task-local learning handoff`; do not repeat the full checkpoint JSON in the conversation. The checkpoint is a transient serialization of the approved plan, including those already-reviewed handoff candidates—not a second plan or new decision. The final yes/no approval authorizes writing that exact checkpoint only. A read-only initialization/orientation boundary does not prohibit the approved checkpoint write. Do not modify application source during `/plan`.
+This list carries candidates forward to `/implement` without treating them as durable knowledge during planning. Show candidate proposals once in the human-readable plan under `Task-local learning handoff`; state that eligible proposals may be automatically staged as inactive pending records if workspace policy enables staging, while promotion remains separately user-confirmed. Do not repeat the full checkpoint JSON in the conversation. The checkpoint is a transient serialization of the approved plan, including those already-reviewed handoff candidates—not a second plan or new decision. The final yes/no approval authorizes writing that exact checkpoint only. A read-only initialization/orientation boundary does not prohibit the approved checkpoint write. Do not modify application source during `/plan`.
 
-Do not write persona-owned memory, session logs, or project records automatically. A plan checkpoint artifact may be written after explicit user approval at the end of /plan, and must be read and deleted by /implement on completion. The checkpoint is transient and does not persist beyond the current phase. Durable knowledge is a separate user-approved operation through the project's existing gate.
+Do not write persona-owned memory or durable project records during planning. A plan checkpoint may be written only after explicit approval at the end of `/plan`; `/implement` reads it and asks the user at completion whether to retain it for `/premortem` or delete it. A standard implementation log is included in each implementation plan's proposed scope and is written by `/implement` after execution/validation; it is not written during planning. Durable promotion or rejection remains a separate user-reviewed operation through the project's existing gate.
 
-### Retrieval and task-local learning handoff
+### Task-local learning handoff
 
-0. **Knowledge route and retrieval** — read `AgenticLab/knowledge/INDEX.md` as the stable scope/corpus/MOC router when the task could benefit from project knowledge; do not expect it to enumerate every record or contain duplicated trigger terms. When project knowledge is relevant, call `readKnowledgeRecords` before source inspection for each distinct topic, sub-question, or query; use an exact record `id` when known, otherwise a task `query`, and pass `scope` or `category` when explicitly established. If it is not relevant, skip retrieval and make no no-match claim. The adapter inventories active records recursively, filters metadata before body search, returns selected bodies with available source/evidence, and emits aggregate metrics. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports no-match. Do not substitute generic file reads for record retrieval. Verify claims against current source only after the tool responds.
+Include only source-checked, reusable findings that could prevent meaningful future rediscovery. Deduplicate against relevant active knowledge when retrieval was required. Keep each proposal scoped and evidence-linked; do not include raw transcripts, secrets, customer data, or routine task status. Mark the handoff `None` when no candidate qualifies.
 
-Planning remains non-persistent. Keep deduplicated, source-checked candidate proposals in the plan's task-local learning handoff; do not call triage, staging, or promotion tools, write candidate files, or emit `candidate_staged` during `/plan`. Carry proposals forward to a separately invoked `/implement`; any pending staging there is subject to workspace opt-in and the `/implement` instructions.
+The approved plan checkpoint carries these as transient proposals; `/plan` never stages or promotes them. During `/implement`, the workspace capture policy governs whether eligible candidates are automatically staged as inactive pending records. Promotion remains a separate explicit action.
 
 ## 7. Resolve blockers and request approval once
 

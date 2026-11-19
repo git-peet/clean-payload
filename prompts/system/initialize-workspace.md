@@ -1,95 +1,95 @@
 ---
-description: "Initialize AgenticLab in this workspace once: confirm scope, orient the codebase, and prepare local Pi wiring."
+description: "Initialize AgenticLab in this workspace once: confirm scope, orient the project, and prepare local Pi wiring."
 argument-hint: "[optional project or subproject focus]"
 ---
 
 # First-use Workspace Initialization
 
-This is a one-time, user-invoked setup and orientation flow for the current workspace. It is not a normal session-start action and must never run automatically on later Pi starts.
+This is a one-time, user-invoked setup flow. It is not a session-start action and must never run automatically on later Pi starts. The user starts it by asking the agent to read and follow this file from the workspace root. During approved setup, `.pi/settings.json` registers this prompt as `/initialize-workspace` and the delivery prompts as `/plan`, `/implement`, and `/premortem`; registration makes them available but does not run them.
 
-For first-use setup, the user simply asks the agent to read and follow `AgenticLab/prompts/system/initialize-workspace.md` from the workspace root. During approved setup, `.pi/settings.json` registers this template as `/initialize-workspace` and the payload's delivery prompts as `/plan`, `/implement`, and `/premortem`. Registration makes them available; it does not run them.
+## Outcomes and invariants
 
-## Purpose and boundaries
+Initialization may prepare:
 
-Prepare five distinct things:
+1. A user-confirmed `AgenticLab/PROJECT-SCOPE.md`.
+2. A concise, source-cited `AgenticLab/PROJECT-OVERVIEW.md` for the confirmed scope.
+3. Project-local `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`.
+4. A knowledge index and empty directory scaffolding where absent.
+5. `AgenticLab/config/knowledge-capture-policy.json` rendered from the payload template.
 
-1. **Project scope** — user-confirmed project/subproject identity and boundaries in `AgenticLab/PROJECT-SCOPE.md`.
-2. **AgenticLab/Pi integration** — project-local `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`; never create or edit a workspace-root `AGENTS.md` or global Pi configuration.
-3. **Project orientation profile** — a concise, source-cited `AgenticLab/PROJECT-OVERVIEW.md`, separate from both scope and durable knowledge records.
-4. **Knowledge navigation scaffold** — a stable `AgenticLab/knowledge/INDEX.md` router, an empty `AgenticLab/knowledge/records/` destination, an empty `AgenticLab/knowledge/maps/` directory, and a minimal `AgenticLab/knowledge/MOC-template.md` skeleton when absent. This is structure only; it does not seed, promote, or synthesize records, and does not create populated MOCs.
-5. **Workspace capture policy** — `AgenticLab/config/knowledge-capture-policy.json`, rendered from the generic template with the confirmed stable project key; candidate staging starts disabled, metrics default on unless the user explicitly asks to disable them, and project-specific triggers are empty.
+The initialization request is **not** approval to write. Show one complete preview and obtain explicit approval in a later user message before writing anything. After approval, write only the exact paths and contents shown in that preview.
 
-This flow does not install or refresh the AgenticLab payload, run the application/tests, seed or promote AgenticLab knowledge records, import knowledge from another workspace or prior installation, or build Graphify, semantic maps, symbol indexes, MOCs, or a DIGEST. It does not create or update files in the host application's paths. Do not access `.env`, secrets, protected `data/`, backups, production/customer data, dependencies, generated output, databases, or the network unless a separate task explicitly authorizes an exact path/action. Do not use shell for project discovery by default.
+During initialization:
 
-The user explicitly invoked setup, but that is **not** blanket approval for file writes. First confirm scope, then perform bounded read-only orientation. Use the template defaults: candidate staging disabled and metrics enabled; honor an explicit request to change either setting. Prepare the exact proposed setup changes and show the complete preview in the conversation. **Do not call any file-writing tool before the preview has been shown and the user has explicitly approved it in a subsequent message.** End the preview with one short approval question and wait. If the user rejects, requests changes, or has not yet approved, write nothing; revise and show a new preview if requested. After approval, use the normal project file tools to write only the approved setup files.
+- Do not run application commands, scripts, tests, migrations, or builds.
+- Do not install dependencies, access the network, start services, or access databases.
+- Do not read `.env` contents, secrets, protected data, backups, customer/production data, installed dependency trees, or generated output. Relevant manifests may be read after scope confirmation.
+- Do not run or emit metrics during initialization. Do not create or modify host-application paths, active records, candidates, checkpoints, metrics, populated MOCs, Graphify/semantic/symbol indexes, or DIGEST files.
+- Do not use shell for broad project discovery.
+- Candidate staging and metrics default to enabled. The user may explicitly opt out of either during initialization.
 
-## Step 0 — Load the applicable AgenticLab contracts
+## Interaction contract
 
-Read, if present:
+Scope details are required input, not a separate approval. If any are missing, ask one concise question containing all missing items and end the turn. After the user replies, continue directly with orientation and the final preview in the same turn. If scope is already supplied, skip the question. Do not send an interim scope recap, progress report, phase narration, or “proceed?” prompt. The only approval question is for the complete setup preview, before writes. If a genuine ambiguity or blocker remains, ask only the focused question needed to resolve it.
+
+## Preflight
+
+Read the required AgenticLab instructions and contracts:
 
 - `AgenticLab/AGENTS.md`
 - `AgenticLab/brain/operating-contract.md`
 - `AgenticLab/brain/knowledge-contract.md`
-- `AgenticLab/knowledge/INDEX.md` (if present)
-- `AgenticLab/config/knowledge-capture-policy.template.json` (if present)
-- `AgenticLab/config/knowledge-capture-policy.json` (if present)
-- `AgenticLab/PROJECT-SCOPE.md`
+- `AgenticLab/config/knowledge-capture-policy.template.json`
 
-The first three paths above are the complete required AgenticLab instruction/contract set for this payload. Do not assume Pi discovered them automatically: the workspace may not have `.pi/APPEND_SYSTEM.md` yet. Do not search for or infer additional contract filenames. If any required path is missing or appears to be a partial/unknown payload, report that and stop rather than inventing its rules. The generic policy template is required for first-use policy creation; if it is missing, malformed, or has unsafe defaults, stop rather than inventing a replacement.
+If a required file is missing, malformed, or indicates an unknown/partial payload, report the problem and stop. Do not invent replacement rules or search for other contract filenames.
 
-## Step 1 — Inspect only known setup paths
+Check only these known initialization paths:
 
-Inspect only these paths to determine whether initialization is new, partial, or already complete:
-
-- `AgenticLab/AGENTS.md`
 - `AgenticLab/PROJECT-SCOPE.md`
 - `AgenticLab/PROJECT-OVERVIEW.md`
-- `AgenticLab/knowledge/INDEX.md`
-- `AgenticLab/knowledge/records/` (existence only; do not inspect record bodies)
-- `AgenticLab/config/knowledge-capture-policy.template.json`
-- `AgenticLab/config/knowledge-capture-policy.json` (existence and bounded config only; preserve if present)
-- `.pi/settings.json`
-- `.pi/APPEND_SYSTEM.md`
+- `AgenticLab/knowledge/INDEX.md` — existence only before scope confirmation; inspect its routing only after scope confirmation if needed
+- `AgenticLab/knowledge/records/` — existence only; never inspect record contents
+- `AgenticLab/knowledge/maps/` — existence only
+- `AgenticLab/knowledge/MOC-template.md` — existence only
+- `AgenticLab/config/knowledge-capture-policy.json` — existence only before scope confirmation; inspect bounded fields only after scope confirmation
+- `.pi/settings.json` and `.pi/APPEND_SYSTEM.md` — existence before scope confirmation; read their contents only after scope confirmation when needed to preserve/merge them
 
-Do not list or inspect host application files during this setup preflight. Do not create, replace, move, or scaffold generic workspace-root paths such as `src/`, `tests/`, `package.json`, or a root `AGENTS.md`.
+Use exact-path reads or existence checks only. If shell is the only way to check a listed path, a direct `test -e <that-exact-path>` check is allowed. Do not use `ls`, `find`, globs, or recursive listings during preflight. Do not inspect any other workspace or payload paths here. In particular, do not check adapter or delivery-prompt wiring targets until after scope confirmation, during setup preparation.
 
 Classify the state:
 
-- **Payload only:** AgenticLab exists but scope/profile/local Pi wiring are absent or incomplete. This is the normal first-run case.
-- **Partially initialized:** one or more target-owned setup files already exist. Preserve them; identify only the missing pieces and conflicts.
-- **Already initialized:** scope, overview, project-local Pi wiring, knowledge navigation scaffold, and workspace capture policy exist. Do not rescan or overwrite. Report that initialization appears complete; offer a separately requested, source-bounded refresh only if the user asks.
-- If scope/overview exist but the knowledge index or records directory is absent, treat the workspace as **partially initialized** for additive scaffold creation only. Do not repeat project orientation.
-- If `AgenticLab/config/knowledge-capture-policy.json` already exists, preserve it. Verify its `project` and `scope` agree with the confirmed stable key; if it is malformed or conflicts with the scope, stop and report the conflict rather than replacing or rewriting it.
+- **Payload only:** none of the workspace-owned outputs (scope, overview, index, records directory, policy, or local Pi wiring) exist. Payload-provided `maps/` or `MOC-template.md` may already exist; these do not by themselves mean the workspace is initialized.
+- **Partially initialized:** some workspace-owned outputs exist, but the required set is incomplete. Preserve them and prepare only safe, additive changes. If scope or policy conflicts with the confirmed identity/key, stop and report the conflict.
+- **Already initialized:** scope, overview, index, records directory, policy, local Pi wiring, maps directory, and MOC template are all present. Do not rescan or overwrite them. Report completion and offer a separately requested, source-bounded refresh only if the user asks.
+- If an overview already exists, do not repeat project orientation unless the user explicitly requests a refresh. If only additive scaffold items are missing, prepare that scaffold only.
 
-If `AgenticLab/` is absent, stop: this prompt must be explicitly read from an AgenticLab payload. Do not infer or report the payload's development origin as part of the consuming project's orientation.
+If `AgenticLab/` is absent, stop. This prompt must be read from an AgenticLab payload.
 
-## Step 2 — Confirm project identity and scope before source inspection
+## Scope gate
 
-If `PROJECT-SCOPE.md` exists, read it and ask only focused questions about missing or conflicting scope. Preserve existing scope text unless the user explicitly approves a change.
+If `AgenticLab/PROJECT-SCOPE.md` exists, read it and ask only about missing or conflicting scope. Preserve the existing scope unless the user explicitly approves a change.
 
-If it does not exist, ask for one concise response establishing:
+If no scope file exists, use scope details the user explicitly supplied in the initialization request. Ask **one concise question containing only still-missing items**:
 
-- project name/type or the user's preferred identity;
-- the stable project key used for `project:<key>` knowledge scope and capture policy; suggest a key only for explicit confirmation, and never infer it from the workspace directory name;
-- which application/repository/subproject the orientation should cover;
-- any paths or data that must not be read during this orientation;
-- any permanent project boundaries or exclusions the user wants recorded, distinguished from temporary orientation limits.
+- Project identity/name; do not infer it from the directory name.
+- Stable key for `project:<key>`. A key may be suggested from the user-confirmed project name, but never inferred from the workspace directory name; ask the user to confirm a suggestion.
+- Included application, repository, or subproject(s).
+- Temporary orientation exclusions (paths/data not to read).
+- Permanent exclusions, or “None.”
 
-Orientation is read-only: do not run the application, tests, scripts, or commands, and do not emit metrics during initialization. After setup, the workspace policy enables aggregate metrics by default; the user may ask to disable them in their setup answers.
+Candidate staging and metrics remain enabled by default; mention that the user may opt out of either, but do not make either a required question. Explain that staging may save eligible candidates as inactive pending records; it does not promote them, and promotion remains separately confirmed.
 
-A project name inferred from a folder is a suggestion, not user confirmation. Do not inspect source to infer authorization or decide which project paths are safe. If the task covers a monorepo, ask for or propose a bounded scope before scanning.
+If the user has already supplied enough information, use it and proceed without an acknowledgement or confirmation. Ask one focused clarification only if an ambiguity prevents safe orientation.
 
-State the intended inspection boundary and exclusions back to the user. If there is unresolved ambiguity about protected data, ask before proceeding.
+**Hard stop:** If required scope information is missing or ambiguous, ask the question and end the turn immediately. Until the user replies, do not read or list any further workspace or payload paths, check wiring targets, run shell commands, or prepare the preview. Do not narrate internal analysis or make additional tool calls after asking; wait for the user.
 
-**Closed-scope rule:** The user-confirmed included scope is fixed for this initialization. Discovering adjacent packages, applications, or directories in manifests, documentation, or repository layout does not add them to `PROJECT-SCOPE.md` or authorize inspecting them. If an adjacent area seems necessary, stop and ask the user to expand scope before reading it. An area omitted from this run is not a permanent exclusion; record only durable exclusions the user explicitly confirmed.
+**Closed scope:** The user-confirmed included areas are fixed for this initialization. Discovering adjacent packages or applications does not add them to scope or authorize reading them. Shared root configuration may be read only when it directly supports an included area; it does not add sibling packages to scope. If an adjacent area seems necessary, ask before inspecting it and stop until the user replies. Omission from this run is not a permanent exclusion. Record only durable exclusions the user explicitly confirmed.
 
-### Semantics of the generated `PROJECT-SCOPE.md`
+`PROJECT-SCOPE.md` is project context, not a permission matrix. It records only confirmed project identity, included areas, and explicit permanent exclusions. Do not put temporary read limits, task permissions, or workflow rules in it.
 
-`PROJECT-SCOPE.md` is project context, not a workflow permission matrix. It records only the user-confirmed project identity, included repository/subproject coverage, and explicit permanent exclusions. Do not put initialization limits, task-specific approval requirements, command permissions, or workflow rules in this file; those are governed by the current task, `AGENTS.md`, and the invoked workflow. A user statement that an operation is not permanently prohibited but requires authorization for a particular task is not a permanent exclusion and must not be copied into this file.
+In `PROJECT-SCOPE.md`, describe included areas only as the user-confirmed application/repository/subproject names and paths. Keep inferred stack, frameworks, databases, test tooling, architecture, and generated-artifact details in `PROJECT-OVERVIEW.md`, not the scope file.
 
-The read-only boundary for initialization governs only this orientation pass. If the user identifies a restriction as permanent, preserve it under permanent exclusions. Otherwise, do not convert the orientation boundary into an ongoing project-wide rule.
-
-For a new scope file, use only this compact structure:
+Use the actual workspace root path supplied by the runtime, or a stable workspace name. Do not persist generic text such as “current workspace.” Use this compact structure for a new scope file:
 
 ```markdown
 # Project Scope
@@ -97,73 +97,53 @@ For a new scope file, use only this compact structure:
 - **Project:** [user-confirmed identity]
 - **Stable project key:** [confirmed key]
 - **Knowledge scope:** project:[confirmed key]
-- **Workspace root:** [confirmed workspace name or root]
+- **Workspace root:** [actual workspace root path or stable workspace name]
 
 ## Included project scope
-[Applications, packages, or subprojects covered by this workspace scope.]
+[Only the applications, repositories, or subprojects the user confirmed.]
 
 ## Permanent exclusions
-[Only explicit, durable exclusions. State `None specified` if there are none.]
+[Only explicit, durable exclusions; otherwise “None specified.”]
 ```
 
-The preview may separately explain that initialization's read-only boundary is temporary, but this explanatory note must be outside the proposed `PROJECT-SCOPE.md` content and code block.
+## Orientation
 
-## Step 3 — Make a bounded read-only orientation
+Begin project-source inspection only after scope is confirmed. Read only sources needed for a compact navigation profile of the included areas. Prefer relevant documentation, manifests, entry points, representative API/model code, and directly relevant build/test configuration. Root manifests, shared scripts, or CI may be read only when they directly support the confirmed areas. Do not recursively inventory the repository or inspect unrelated packages, scripts, or project history.
 
-After scope is confirmed, inspect only sources needed to create a compact navigation profile. Prefer direct, known files and available native read-only tools. Use the confirmed scope to choose paths; do not recursively inventory the entire workspace by default.
+Use native read-only tools where available. If a bounded listing is needed to find a relevant source, keep it inside the confirmed area. Do not use shell for broad discovery. If a needed source cannot be located with permitted bounded methods, report the limitation rather than broadening the search.
 
-Likely useful sources, only when within the confirmed scope:
+Do not read excluded/protected files. It is permissible to inspect source code that configures an env-file path, but never read the env file itself. Do not execute scripts, install dependencies, start services, run migrations, or run tests.
 
-- README/contributor/architecture documentation;
-- package/workspace manifests and language/framework configuration;
-- limited top-level structure for approved application paths;
-- entry points named by project documentation or manifests;
-- representative tests and test-runner configuration to identify layout/conventions;
-- CI/build configuration only when useful to understand the project workflow.
+If the overview will include build/test guidance, perform a bounded validation-source check:
 
-Do not execute scripts found in manifests. Do not install dependencies, start services, run migrations, or run tests. Do not read any excluded/protected files. If available read-only tools cannot cover a requested area, report the limitation and ask whether to accept partial coverage; do not substitute a shell command or broaden the scan. If the source surface is too large for the agreed pass, stop with a partial-coverage report and offer a narrower follow-up.
+- Inspect the relevant in-scope runner/wrapper, test configuration, and target; do not rely on README or manifest text alone.
+- If documentation points to a test-tooling directory, a bounded read-only listing of that directory may identify clearly relevant isolated runners. Inspect only relevant test runners, not unrelated scripts.
+- Record the command and working directory when verified, required environment, env-file loading behavior (without reading env contents), file/database creation and cleanup, and dependency-install/network side effects. For package runners such as `uv run` or `bunx`, report known sync/install/fetch behavior and prerequisites; otherwise mark them unverified.
+- Scope test-safety claims to the inspected target and fixture. Do not generalize one fixture's isolation to an entire suite unless the relevant suite behavior was checked; otherwise mark suite-level isolation unknown.
+- Keep unrelated mutating operations, such as database migrations or generated-client commands, out of the general build/test summary. If essential to the orientation, label their file/database side effects and that they were not run.
+- Do not run commands. If a detail cannot be verified within scope, mark it documentation-only or unknown; do not call it safe or isolated without evidence.
 
-**Validation-command check:** If the overview will include build/test guidance, do not rely on README or manifest text alone: inspect the in-scope command's runner/wrapper and relevant test configuration/target. When a documented command points to a test-tooling directory and a native read-only listing tool is available, use a bounded listing to identify clearly relevant test wrappers or isolated alternatives; inspect only those, not unrelated scripts. Do not use shell for project discovery by default; if no permitted listing method can establish whether an isolated alternative exists, state that limitation. Record the working directory, required environment, whether configuration loads an env file (without reading that file), file/database creation and cleanup, and dependency-install or network side effects. Do not run commands. If these details cannot be verified within scope, label the command documentation-only and mark the unverified runner/isolation/safety details explicitly; do not describe it as verified, isolated, or safe.
+Distinguish source-verified facts from inference and unknowns. The overview's `Sources` list must include the files actually read that support its claims; do not list unread files.
 
-For every material claim, distinguish source-verified fact from inference or unknown and retain supporting file paths. A profile is a useful map, not an exhaustive inventory or current truth for every future task.
+## Prepare the profile and setup changes
 
-Match orientation effort to the user-confirmed coverage. At minimum, if backend depth is requested, inspect the backend's documented entry point plus representative model/API/dependency source; if frontend or deployment mapping is requested, inspect the relevant frontend entry/config and deployment docs/config. Keep paths within the approved boundaries and do not execute them. Before preview, reconcile the overview's source list against every file actually read, including follow-up reads; each material build/test or safety claim must cite the source that supports it. Do not list unread sources or call coverage repository-wide if only a subset was inspected. If required coverage cannot be completed within the authorization, stop with a partial-coverage report and ask whether to narrow or accept the partial profile; do not present a full-coverage preview.
+Prepare only the following outputs as needed. Preserve existing content unless the user approves a specific update.
 
-## Step 4 — Draft the project orientation profile
+### Project overview
 
-Draft `AgenticLab/PROJECT-OVERVIEW.md` with only useful, verified orientation material. Suggested structure:
+Prepare `AgenticLab/PROJECT-OVERVIEW.md` as a compact navigation aid, not an exhaustive inventory. Use only verified information and include:
 
-```markdown
-# Project Overview
+- Project identity and actual coverage.
+- Stack, workspace layout, and useful starting points.
+- Build/test commands/configuration, explicitly marked as inspected but not run; include known isolation and safety details.
+- Material unknowns and exclusions.
+- A `Sources` list matching the files actually read.
 
-- **Project:** [user-confirmed identity]
-- **Oriented:** [date]
-- **Coverage:** [areas inspected and important exclusions]
+Do not include unconfirmed adjacent applications/packages or turn temporary orientation limits into permanent project rules. Do not add PBI history or unrelated implementation documents unless they directly support a useful orientation claim.
 
-## Stack and workspace layout
-[Languages/frameworks, packages/apps, concise directory map]
+### Local Pi wiring
 
-## Starting points and key flows
-[Important entry points and a small number of useful source paths]
-
-## Build and test approach
-[Commands/configuration found in source; explicitly mark as inspected, not run]
-[Known test-isolation or safety constraints, if verified]
-
-## Known unknowns
-[Material areas not inspected or facts needing confirmation]
-
-Do not reference `wiki/index.md` here — the knowledge-system index is `AgenticLab/knowledge/INDEX.md` and should only be referenced if durable knowledge records exist.
-
-## Sources
-[Paths supporting the summary]
-```
-
-Do not set an arbitrary token limit; make it compact enough to be read in a fresh session. Do not copy scope rules into it as authority, duplicate decision rationale from records, or populate persona-memory files, `SYSTEM_CORE.md`, DIGEST, Graphify, symbol/semantic indexes, or experience records. If a durable non-source-derived decision is uncovered, report it separately as a candidate for the future knowledge interface; do not save it here.
-
-## Step 5 — Prepare local Pi wiring
-
-Prepare `.pi/settings.json` by preserving all existing keys and adding only missing AgenticLab resources:
+Prepare `.pi/settings.json` by preserving existing keys and adding only missing AgenticLab entries without duplicates:
 
 ```json
 {
@@ -177,9 +157,9 @@ Prepare `.pi/settings.json` by preserving all existing keys and adding only miss
 }
 ```
 
-When merging, preserve unrelated extensions/prompts/settings and do not duplicate the AgenticLab paths. If an existing value conflicts, is invalid, or cannot be safely merged, stop and show the conflict instead of replacing it.
+If existing values are invalid or conflict, stop and show the conflict instead of replacing them. Before previewing this wiring, verify existence only for the exact registered targets: `AgenticLab/adapters/pi/knowledge-write-gate.ts` and the four listed prompt files. If any target is missing, stop and report the incomplete payload; do not inspect unrelated adapter or prompt files.
 
-Prepare `.pi/APPEND_SYSTEM.md` by preserving existing host content and adding a concise AgenticLab block equivalent to:
+Prepare `.pi/APPEND_SYSTEM.md` by preserving existing host content and adding the following AgenticLab block only if an equivalent block is not already present; do not duplicate it:
 
 ```markdown
 For work in this workspace, read and follow `AgenticLab/AGENTS.md`.
@@ -188,67 +168,55 @@ If `AgenticLab/PROJECT-OVERVIEW.md` exists, read it once as fresh-session orient
 Do not create or modify a workspace-root `AGENTS.md` for AgenticLab.
 
 **Knowledge retrieval trigger:** Before source inspection for design rationale, decision context, or reusable patterns:
-1. Read `AgenticLab/knowledge/INDEX.md` as the stable workspace router when present; use it to identify scope, collections, and any curated topic maps. Do not expect an exhaustive record list or duplicated trigger-term list.
+1. Read `AgenticLab/knowledge/INDEX.md` as the stable workspace router when present; use it to identify scope, collections, and curated topic maps. Do not expect an exhaustive record list or duplicated trigger-term list.
 2. **Always** call `readKnowledgeRecords` before source inspection for each distinct topic, sub-question, or query — use an exact record `id` when known, otherwise a query. If the task establishes an explicit subproject scope or requests a category, pass the optional `scope` or `category` filter. The adapter inventories and filters active records recursively before returning selected bodies plus available source/evidence metadata. Do not use generic file reads to retrieve record bodies.
 3. Only after the tool responds should you verify claims against current source. Treat `filtered`, `incomplete`, `unavailable`, and `no_knowledge_store` distinctly; only a complete `no_match`/`not_found` result supports a no-match claim. If there is a complete no-match, proceed to source inspection.
 
+**Write gate note:** Knowledge changes use the dedicated adapter lifecycle. `/plan` is read-only for application source; its final preview includes the exact transient checkpoint, including task-local handoff candidates, and user approval authorizes that one write. The write gate exempts only the exact `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` path to avoid a redundant second confirmation; no other knowledge write is covered by plan approval. When the workspace policy enables pending staging, `/implement` may automatically stage only eligible, source-supported candidates as inactive pending records. Staging never authorizes promotion; promotion or rejection requires the dedicated adapter review and explicit UI confirmation. No host application paths are created during initialization.
 ```
 
-If either `.pi` file already contains equivalent AgenticLab guidance, leave it intact. Do not write global Pi settings/trust or host-root instruction files. Project `.pi` resources require project trust; do not claim they are active in the current process before a fresh trusted Pi process loads them.
+Project `.pi` resources require project trust and a fresh trusted Pi process. Do not modify global Pi settings or host-root instructions.
 
-**Write gate note:** Knowledge changes use the dedicated adapter lifecycle. `/plan` is read-only for application source; its final preview includes the exact transient checkpoint, including task-local handoff candidates, and user approval authorizes that one write. The write gate exempts only the exact `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` path to avoid a redundant second confirmation; no other knowledge write is covered by plan approval. `/implement` may write candidate state only through the staged lifecycle described in its prompt, with workspace opt-in and action-specific approvals. No host application paths are created during initialization.
+### Knowledge scaffold
 
-## Step 5a — Prepare the knowledge navigation scaffold
+- If `AgenticLab/knowledge/INDEX.md` is absent, prepare a scope-aware router identifying `records/` as the canonical destination for newly promoted project records; explain recursive active-record retrieval, including legacy root-level records during migration; state that a complete eligible-corpus scan—not map membership—is required for a no-match claim; and describe maps as optional navigation aids. Do not add transient active-record counts/status such as “no active records yet”: the INDEX is a durable router. It may state that initialization does not seed or promote records, but do not infer that the full eligible corpus is empty solely because `records/` is absent.
+- If `AgenticLab/knowledge/INDEX.md` exists, preserve it. After scope confirmation, inspect only enough routing content to verify its scope is consistent; if it conflicts or is materially misleading, stop and show the conflict rather than replacing it.
+- If `AgenticLab/knowledge/records/` is absent, prepare an empty directory with a zero-byte `.gitkeep`. If it exists, preserve it without inspecting record contents.
+- If `AgenticLab/knowledge/maps/` exists, preserve it. If absent, prepare an empty directory with a zero-byte `.gitkeep`.
+- If `AgenticLab/knowledge/MOC-template.md` exists, preserve it. If absent, prepare a minimal blank template consistent with `AgenticLab/brain/knowledge-contract.md`.
+- Do not create or copy active records, candidates, checkpoints, metrics, populated MOCs, or user notes.
 
-After project scope is confirmed, prepare the following additive scaffold:
+### Capture policy
 
-- If `AgenticLab/knowledge/INDEX.md` is absent, propose a new stable router using the confirmed workspace scope. It must identify `records/` as the canonical destination for newly promoted project records, explain that `readKnowledgeRecords` searches the active knowledge tree recursively (including legacy root-level active records during migration), state that a complete eligible-corpus scan—not map membership—is required for no-match, and include a note that topic maps may be added under `maps/` when a navigation need is established.
-- If `AgenticLab/knowledge/INDEX.md` already exists, preserve it. If its stated scope conflicts with the confirmed scope or its routing is materially misleading, stop and show the conflict; do not silently replace it during initialization.
-- If `AgenticLab/knowledge/records/` is absent, propose an empty directory scaffold with a zero-byte `AgenticLab/knowledge/records/.gitkeep` marker so the directory survives workspace copying. If it exists, preserve its contents.
-- If `AgenticLab/knowledge/maps/` is absent, propose an empty directory scaffold with a zero-byte `AgenticLab/knowledge/maps/.gitkeep` marker so the directory survives workspace copying. If it exists, preserve its contents.
-- If `AgenticLab/knowledge/MOC-template.md` is absent, propose a minimal blank MOC skeleton referencing `records/` as the collection. The template follows the structure defined in `AgenticLab/brain/knowledge-contract.md` (topic MOC/map template). It is a scaffold only — not a populated MOC.
-- Do not list or copy active records, pending candidates, checkpoints, metrics, or user notes into the scaffold. Do not create MOCs until a real navigation need is established. This initialization step creates routing/structure only, not durable knowledge.
+Render `AgenticLab/config/knowledge-capture-policy.json` from `AgenticLab/config/knowledge-capture-policy.template.json`. The generic template supplies defaults but has no workspace identity fields. In the rendered policy, always add `"project": "<confirmed-key>"` and `"scope": "project:<confirmed-key>"`; do not omit them, because the adapter otherwise falls back to its pilot scope. Preserve `schemaVersion: 1`, use `pendingStagingEnabled: true` and `metricsEnabled: true` unless the user explicitly opted out of either, and keep project-specific triggers empty. Metrics are aggregate and content-free; initialization emits none. If the template is missing, invalid, or unsafe, stop rather than inventing a policy. Preserve an existing policy; after scope confirmation, verify its project/scope match the confirmed key and stop if they conflict or are missing.
 
-## Step 6 — Present one complete initialization preview
+## Preview and approval
 
-Use `metricsEnabled: true` unless the user explicitly requested that aggregate metrics be disabled in their setup answers. This default is not approval to write; show the setting in the preview.
+Before presenting the preview, verify that:
 
-Prepare the exact contents for every setup file that needs to be created or updated. Show one complete preview in the conversation: identify each path and whether it will be created, updated, or preserved; include the full proposed contents for new files and the exact diff for updates. Confirm that the scope file contains only project identity, included areas, and explicitly permanent exclusions, and that every included application/package was explicitly named by the user rather than inferred from discovery. Do not turn omitted adjacent areas into permanent exclusions. End with this one short question: **“Approve these setup changes?”** Then stop and wait for the user's response; do not add another approval prompt. **Until the user explicitly approves that preview in a later message, do not call a tool or command that creates, changes, or deletes workspace files.** If the user requests a change, prepare and show the revised preview, then wait for approval again.
+- Every application/package in `PROJECT-SCOPE.md` is within the user-confirmed scope; a whole-repository confirmation includes its subprojects, but discovering a sibling does not expand a narrower scope. The scope file contains names/paths and durable exclusions, not source-derived stack or test details.
+- No adjacent discovery expanded scope or became a permanent exclusion.
+- The overview describes only actual coverage and its `Sources` list matches the files read.
+- Every proposed path is marked create, update, or preserve; full contents are shown for creates and exact diffs for updates.
+- Existing maps, MOC templates, records, and unrelated `.pi` settings are preserved.
+- The policy contains `project` equal to the confirmed key and `scope` equal to `project:<key>`, plus staging and metrics enabled unless explicitly opted out, and no unapproved triggers. Explain that staging saves only eligible candidates as inactive pending records; promotion is separately confirmed.
+- The preview contains only the setup paths listed in the preparation section; no other path is proposed.
+- No host-application path, active record, candidate, checkpoint, metric, or populated MOC is proposed.
 
-The setup preview may include only:
+Show one complete preview. End with exactly one short question:
 
-1. `AgenticLab/PROJECT-SCOPE.md`, containing project identity, included areas, and explicit permanent exclusions only. Explanations of temporary initialization limits belong in the conversation, not in this file.
-2. `AgenticLab/PROJECT-OVERVIEW.md`, with bounded coverage, actually inspected project-source paths, and known uncertainties.
-3. `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`, preserving/merging existing unrelated settings as shown in the preview.
-4. `AgenticLab/knowledge/INDEX.md` and, only when the records directory is absent, `AgenticLab/knowledge/records/.gitkeep` as a zero-byte marker. Preserve existing knowledge contents.
-5. `AgenticLab/knowledge/maps/.gitkeep` as a zero-byte marker (only when the maps directory is absent). Preserve existing contents.
-6. `AgenticLab/knowledge/MOC-template.md` as a minimal blank MOC skeleton (only when absent). The template follows the structure defined in `AgenticLab/brain/knowledge-contract.md`. It is a scaffold only — not a populated MOC.
-5. `AgenticLab/config/knowledge-capture-policy.json`, rendered from the generic template with `schemaVersion: 1`, the confirmed `project` and matching `scope: project:<key>`, staging disabled, empty triggers, and metrics disabled unless the user explicitly opted in.
+**“Approve these setup changes?”**
 
-There must be no setup write before the user's explicit approval of the complete conversation preview. Do not treat answers to scope questions or optional configuration preferences as approval to write. Do not infer approval from silence, from the request to initialize, or from the user's review of a preview.
+Then stop. Do not write anything before explicit approval of that complete preview in a later user message. Answers to scope questions, optional preferences, silence, or review of a preview are not write approval. If the user requests a correction, revise the preview only; do not broaden source inspection unless the user explicitly expands scope. If scope changes, the old preview is invalid and a new preview is required.
 
-**Metrics:** The workspace capture policy lives at `AgenticLab/config/knowledge-capture-policy.json`; `.pi/settings.json` does not own this setting. Metrics default to `true`; set them to `false` only if the user explicitly asks to disable them during setup. This preference does not approve any file writes. The final preview must show the exact setting. Events go to `.pi/metrics/agenticlab.jsonl`; no raw user content is recorded.
+## Apply and finish
 
-After approval, create or update only the paths included in the approved preview. Preserve unrelated existing settings and all files omitted from the preview. If a write partially fails, stop and report exactly which approved paths completed; do not broaden the set. Do not create or modify active records, pending candidates, checkpoints, metrics, or MOCs. The INDEX and empty records marker are structural initialization artifacts, not knowledge records.
+After approval, write only the exact approved paths and contents. Preserve all other files. If a write fails or conflicts, stop and report which approved writes succeeded; do not broaden the change set.
 
-## Step 7 — Finish and activate Pi locally
+Verify only the approved writes. Do not run the application, tests, scripts, or a general smoke test. Report created, updated, and preserved paths, and tell the user that a fresh trusted Pi process is required to load the local settings. Do not rerun initialization automatically.
 
-Report exactly which files were created or merged and which were preserved. Tell the user to start a fresh Pi process from the workspace root and grant project trust when prompted. This restart activates the newly written `.pi` configuration; **it is not a request to read or run the initialization prompt again.** The initialization flow is now complete.
-
-In the fresh trusted process, the project instructions should load normally. If an explicit smoke check is wanted, read `AgenticLab/PROJECT-SCOPE.md` and `AgenticLab/PROJECT-OVERVIEW.md` and report their key points; do not rescan the codebase or rerun initialization. Verify that:
-
-- `.pi/APPEND_SYSTEM.md` instructions are active;
-- the local knowledge-write extension is listed;
-- `/initialize-workspace`, `/plan`, `/implement`, and `/premortem` are registered and available for explicit invocation; none was run automatically;
-- `PROJECT-SCOPE.md` and the overview are directed to be read at fresh-session start; the scope contains only project identity, included areas, and explicit permanent exclusions, with no initialization-only restriction or task authorization matrix;
-- `AgenticLab/knowledge/INDEX.md` exists as a scope-aware router and `AgenticLab/knowledge/records/` exists as an empty canonical destination unless preexisting content was preserved; if `AgenticLab/knowledge/maps/` exists, preserve its contents; if `AgenticLab/knowledge/MOC-template.md` exists, preserve its contents.
-- `AgenticLab/config/knowledge-capture-policy.json` exists with `project` equal to the confirmed stable project key and `scope` equal to `project:<key>` in `PROJECT-SCOPE.md`, staging disabled, no unapproved project-specific triggers, and metrics enabled unless the user explicitly opted out;
-
-**Enabling staging later:** If staging was disabled during init, enable it via the Pi runtime session with `pi "knowledge-opt-in"` (adapter command, not a CLI subcommand — do not run at shell); this sets `pendingStagingEnabled: true`.
-- no active knowledge record or host application path was created or changed.
-
-If `PROJECT-OVERVIEW.md` was just created, a bounded fresh-session read check verifies availability, not general delivery benefit.
+If initialization is interrupted, resume from the last completed step. If the scope question is unanswered, remain stopped; do not continue inspection.
 
 ## Later use
 
-Ordinary sessions do not rerun this prompt. They read the confirmed scope and compact overview; task-specific persistent records remain selectively retrieved through the distinct AgenticLab knowledge interface. A later explicit `/initialize-workspace` invocation must detect the existing profile and stop unless the user specifically asks for a refresh. A refresh must show a source-bounded diff and require approval before updating setup/profile files.
+Ordinary sessions do not rerun this prompt. They use the confirmed scope and compact overview; task-specific persistent records are retrieved through the AgenticLab knowledge interface. A later explicit initialization or refresh requires a source-bounded preview and approval before any updates. If staging is disabled, it may later be enabled with `pi "knowledge-opt-in"` in the Pi runtime (adapter command, not a CLI subcommand); never run it from shell.
