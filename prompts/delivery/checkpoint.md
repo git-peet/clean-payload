@@ -22,7 +22,7 @@ Schema:
   "summary": "Concise approved outcome.",
   "inScope": ["path/to/approved/source", "path/to/approved/test"],
   "outOfScope": ["database access", "unrelated application paths"],
-  "validation": ["focused test or read-only verification"],
+  "validation": ["<purpose>; command: <exact command>; cwd: <working directory>; environment: <required variable names and non-secret values/placeholders or none>; prerequisites: <requirements>; side effects: <file/database/network effects>; status: planned|blocked|not applicable"],
   "stopConditions": ["scope contradiction", "unsafe side effect", "missing evidence"],
   "decisions": ["User-confirmed product or implementation decision"],
   "handoff_candidates": [],
@@ -32,7 +32,7 @@ Schema:
 
 Not durable knowledge. Do not store secrets, customer/cart data, raw transcripts, metrics, or pending-candidate contents in this file.
 
-Usage in `/plan`: after the user approves the complete plan, write this checkpoint with approved scope, validation, stop conditions, decisions, and any task-local `handoff_candidates`.
+Usage in `/plan`: after the user approves the complete plan, write this checkpoint with approved scope, self-contained validation entries, stop conditions, decisions, and any task-local `handoff_candidates`. Preserve each validation check's command, working directory, required environment variable names and non-secret values/placeholders, prerequisites, side effects, and status so `/implement` does not need to rediscover them. Never store secret values. For implementation plans, include the standard implementation-log path in `inScope` so `/implement` is authorized to write it as a planned output.
 
 Usage in `/implement`: read this exact path at start; require approved status and matching task. If missing, stale, or mismatched, ask the user for the approved plan and do not edit.
 

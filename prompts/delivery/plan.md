@@ -71,7 +71,7 @@ Present the complete plan and wait for explicit approval before writing its chec
 
 Inspect the smallest relevant current-source surface and any scoped knowledge needed to plan. Distinguish source-verified facts, user-provided requirements, and inference. Cite paths or other evidence for material claims. Treat knowledge as evidence, not authorization; preserve the user's scope and existing protected-data boundaries.
 
-Create a concise surface map: relevant modules/files, current behavior, dependencies, and important external contracts. Use a domain perspective or procedure where it helps. Do not invoke a fixed persona chain; use an independent reviewer only if independent judgment materially improves the plan. Request UX/design input only when an actual UI decision is unresolved.
+Create a concise surface map: relevant modules/files, current behavior, dependencies, and important external contracts. For each command-based validation, inspect the actual runner/wrapper, relevant configuration or fixture, and target; prefer the project's isolated/safe runner over a generic command inferred from dependencies or convention. Cite those evidence paths and record exact invocation and side effects. Include every workspace output a check may create or change in the proposed scope and checkpoint `inScope`; describe ephemeral artifacts and cleanup. If the safe command, target, or effects cannot be verified, mark the check blocked/not verified with the reason—do not invent a substitute command. Use a domain perspective or procedure where it helps. Do not invoke a fixed persona chain; use an independent reviewer only if independent judgment materially improves the plan. Request UX/design input only when an actual UI decision is unresolved.
 
 ## 5. Form the plan
 
@@ -84,19 +84,23 @@ Provide:
 6. Risks, mitigations, and stop conditions.
 7. Acceptance/validation plan, including relevant tests and manual checks.
 8. A compact handoff sufficient for `/implement` without requiring rediscovery.
-9. For implementation plans, the standard log path `AgenticLab/implementation-logs/<workspace-key>/<task-slug>/implementation-log.md` as a proposed `/implement` output. `/implement` writes this log as part of the approved plan scope without a separate post-run approval; the `/plan` approval still authorizes only the transient checkpoint.
-10. When the plan has reusable task-local candidates, state that eligible candidates may be auto-staged during `/implement` if `pendingStagingEnabled` is true; they remain inactive and promotion requires explicit review. If staging is disabled, candidates remain task-local without a per-run staging question.
+9. For implementation plans, include the standard log path `AgenticLab/implementation-logs/<workspace-key>/<task-slug>/implementation-log.md` in the proposed implementation scope and in checkpoint `inScope`. `/implement` writes this log as part of the approved plan scope without a separate post-run approval; the `/plan` approval still authorizes only the transient checkpoint.
+10. When the plan has reusable, project-scoped task-local candidates, state that eligible candidates may be auto-staged during `/implement` if `pendingStagingEnabled` is true; they remain inactive and promotion requires explicit review. If staging is disabled, candidates remain task-local without a per-run staging question.
 
-For risks in the proposed plan, perform a proportionate assumption check. For high-impact or silent integration-contract risks, include specific verification actions. A full code premortem is a separate review of code that exists; do not force it into every plan.
+Make acceptance criteria testable. For quantitative limits or new external contracts not specified by the PBI, derive a source-grounded recommendation, state its assumptions and units, and label it as proposed rather than accepted; do not silently choose an arbitrary value. Include material proposals in `Risks and open decisions` so the single final approval can accept or change them. For high-impact or silent integration-contract risks, include specific verification actions. A full code premortem is a separate review of code that exists; do not force it into every plan.
+
+Use the output template below as the final structure: include every heading in order; write `None` when there are no applicable risks, decisions, or handoff candidates. Carry each validation check into checkpoint `validation` as a self-contained entry with the exact command, working directory, required environment variable names and non-secret values/placeholders, prerequisites, side effects, and status. Never put secret values in the plan or checkpoint. For implementation plans, include the standard implementation-log path in both proposed scope and checkpoint `inScope`. Present the plan only when complete.
 
 ## 6. Preserve learning provenance without writing memory
 
 At meaningful analysis/handoff points, record only potentially reusable findings in a **task-local learning handoff**. For each candidate include:
 - concise claim or decision;
-- applicability scope;
+- applicability scope within the user-confirmed project boundaries;
 - source/evidence and revision, if available;
 - whether it is verified, inferred, or unresolved;
 - why it may prevent meaningful future rediscovery.
+
+Do not add general AgenticLab payload policies, workflow rules, or claims that merely restate the PBI/plan as the consuming project's knowledge candidates. Only include AgenticLab policy findings when the user-confirmed project scope explicitly includes AgenticLab development. Keep unresolved design proposals task-local; they are not verified knowledge.
 
 Carry forward candidates already present in the conversation/plan, merge duplicates, and update their evidence/status rather than repeating them. Check relevant authoritative project material for an existing equivalent before proposing a candidate. Mark `none` if nothing qualifies.
 
@@ -122,15 +126,17 @@ Do not write persona-owned memory or durable project records during planning. A 
 
 ### Task-local learning handoff
 
-Include only source-checked, reusable findings that could prevent meaningful future rediscovery. Deduplicate against relevant active knowledge when retrieval was required. Keep each proposal scoped and evidence-linked; do not include raw transcripts, secrets, customer data, or routine task status. Mark the handoff `None` when no candidate qualifies.
+Include only source-checked, reusable findings that could prevent meaningful future rediscovery within the user-confirmed project scope. Deduplicate against relevant active knowledge when retrieval was required. Keep each proposal scoped and evidence-linked; do not include raw transcripts, secrets, customer data, generic AgenticLab policy, unverified design proposals, or routine task status. Mark the handoff `None` when no candidate qualifies.
 
 The approved plan checkpoint carries these as transient proposals; `/plan` never stages or promotes them. During `/implement`, the workspace capture policy governs whether eligible candidates are automatically staged as inactive pending records. Promotion remains a separate explicit action.
 
 ## 7. Resolve blockers and request approval once
 
-If a decision materially blocks a safe plan, pause and ask the focused question before finalizing. Otherwise present the complete plan, including validation and the task-local learning handoff, and ask one consolidated question:
+Do not interrupt planning to ask about an adjustable design parameter when source evidence supports a reasonable proposal. State the recommendation, evidence, and any alternative as an open decision in the complete plan; the user can accept or change it in the single approval reply. Ask before finalizing only when uncertainty about scope, authorization, protected data, or a core requirement prevents a safe and coherent plan.
 
-> Do you approve this plan and authorize writing its transient `plan-checkpoint.json` handoff? This authorizes only the approved plan and checkpoint; implementation still requires a separate explicit `/implement` invocation.
+Then present the complete plan, including validation, the implementation-log path, and the task-local learning handoff, and ask one consolidated question:
+
+> Do you approve this plan as written, including its recommended decisions, and authorize writing its transient `plan-checkpoint.json` handoff? This authorizes only the approved plan and checkpoint; implementation still requires a separate explicit `/implement` invocation. If you want changes, state them instead of approving.
 
 Do not add a second design-approval prompt after the complete plan unless a material new decision arises. Do not start implementation, mutate files, or invoke another workflow from this prompt.
 
@@ -143,7 +149,7 @@ Do not add a second design-approval prompt after the complete plan unless a mate
 [Plain-language result and acceptance criteria]
 
 ### Scope
-**Planning session:** [evidence inspected; state that no edits/commands/tests/persistence occurred]
+**Planning session:** [evidence inspected; state that no project files were changed and no commands/tests were run. Content-free context metrics may have been recorded; no durable knowledge was written.]
 
 **Proposed implementation scope (not authorized until `/implement`):** [included files/actions and explicit exclusions]
 
@@ -157,14 +163,14 @@ Do not add a second design-approval prompt after the complete plan unless a mate
 [Material risks, mitigations, blockers, or "None"]
 
 ### Validation
-[What will establish completion]
+[One bullet per check: purpose; exact command (or why no command applies); working directory; required environment variable names and non-secret values/placeholders; prerequisites; file/database/network side effects; and status (planned, blocked, or not applicable). Redact secret values. Mark unavailable prerequisites as blocked. Do not run commands during planning.]
 
 ### Task-local learning handoff
 [Source-linked candidates with scope/status, or "None"]
 
 ### Approval
-[One concise yes/no question approving the plan and its transient checkpoint write; implementation requires a separate explicit `/implement` invocation. Do not append the full checkpoint JSON to the conversation.]
-If approved, write `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` as a mechanical serialization of the approved plan (schema in `AgenticLab/prompts/delivery/checkpoint.md`), including the task-local `handoff_candidates` already shown above. Do not introduce new decisions or candidate content during serialization. This plan approval authorizes this one checkpoint write; do not ask a redundant second write-confirmation question. Do not persist secrets, raw transcripts, or customer data in the checkpoint.
+[One concise question asking whether the user approves the plan as written, including proposed decisions, and authorizes its transient checkpoint. If the user wants changes, they should state them instead. Implementation still requires a separate explicit `/implement` invocation. Do not append the full checkpoint JSON to the conversation.]
+If approved, write `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` as a mechanical serialization of the approved plan (schema in `AgenticLab/prompts/delivery/checkpoint.md`), including the self-contained validation entries and task-local `handoff_candidates` already shown above. Do not introduce new decisions or candidate content during serialization. This plan approval authorizes this one checkpoint write; do not ask a redundant second write-confirmation question. Do not persist secrets, raw transcripts, or customer data in the checkpoint.
 ```
 
 ## Scope and limitations

@@ -30,7 +30,13 @@ During initialization:
 
 ## Interaction contract
 
-Scope details are required input, not a separate approval. If any are missing, ask one concise question containing all missing items and end the turn. After the user replies, continue directly with orientation and the final preview in the same turn. If scope is already supplied, skip the question. Do not send an interim scope recap, progress report, phase narration, or “proceed?” prompt. The only approval question is for the complete setup preview, before writes. If a genuine ambiguity or blocker remains, ask only the focused question needed to resolve it.
+Initialization has three distinct states; never combine them:
+
+1. **Scope clarification:** If required scope is missing or ambiguous, ask one concise question containing only the missing details and end the turn. Output only that question—no preview, no “Approve these setup changes?” text, and no write instructions. A scope reply supplies context only; it is not approval.
+2. **Preview:** Once scope is complete, perform read-only preparation and present the complete preview. End with exactly one question: “Approve these setup changes?” Then stop. Do not call `write`, `edit`, `mkdir`, `touch`, or any mutating shell command in the preview turn.
+3. **Apply:** Write only after a later user message explicitly approves that complete preview. A scope answer, correction request, silence, or approval of an earlier preview does not authorize writes. If the preview needs correction, return to Preview and wait again.
+
+Do not send interim scope recaps, progress reports, or phase narration. If a genuine ambiguity or blocker remains, ask only the focused question needed to resolve it.
 
 ## Preflight
 
@@ -87,7 +93,7 @@ If the user has already supplied enough information, use it and proceed without 
 
 `PROJECT-SCOPE.md` is project context, not a permission matrix. It records only confirmed project identity, included areas, and explicit permanent exclusions. Do not put temporary read limits, task permissions, or workflow rules in it.
 
-In `PROJECT-SCOPE.md`, describe included areas only as the user-confirmed application/repository/subproject names and paths. Keep inferred stack, frameworks, databases, test tooling, architecture, and generated-artifact details in `PROJECT-OVERVIEW.md`, not the scope file.
+Use the user's confirmed project identity verbatim; do not expand it with inferred technical details. In `PROJECT-SCOPE.md`, list only the user-confirmed application/repository/subproject names and paths under `Included project scope`. A name such as “FastAPI demo application” is identity only; it does not authorize extra stack, architecture, or test claims. Put verified technical details in `PROJECT-OVERVIEW.md`.
 
 Use the actual workspace root path supplied by the runtime, or a stable workspace name. Do not persist generic text such as “current workspace.” Use this compact structure for a new scope file:
 
@@ -108,22 +114,9 @@ Use the actual workspace root path supplied by the runtime, or a stable workspac
 
 ## Orientation
 
-Begin project-source inspection only after scope is confirmed. Read only sources needed for a compact navigation profile of the included areas. Prefer relevant documentation, manifests, entry points, representative API/model code, and directly relevant build/test configuration. Root manifests, shared scripts, or CI may be read only when they directly support the confirmed areas. Do not recursively inventory the repository or inspect unrelated packages, scripts, or project history.
+Begin source inspection only after scope is confirmed. Read a few relevant in-scope documents, manifests, and entry points to create a compact navigation profile. Do not recursively inventory the repository or inspect unrelated packages or scripts. Do not read excluded/protected files, run commands, install dependencies, start services, run migrations, or run tests.
 
-Use native read-only tools where available. If a bounded listing is needed to find a relevant source, keep it inside the confirmed area. Do not use shell for broad discovery. If a needed source cannot be located with permitted bounded methods, report the limitation rather than broadening the search.
-
-Do not read excluded/protected files. It is permissible to inspect source code that configures an env-file path, but never read the env file itself. Do not execute scripts, install dependencies, start services, run migrations, or run tests.
-
-If the overview will include build/test guidance, perform a bounded validation-source check:
-
-- Inspect the relevant in-scope runner/wrapper, test configuration, and target; do not rely on README or manifest text alone.
-- If documentation points to a test-tooling directory, a bounded read-only listing of that directory may identify clearly relevant isolated runners. Inspect only relevant test runners, not unrelated scripts.
-- Record the command and working directory when verified, required environment, env-file loading behavior (without reading env contents), file/database creation and cleanup, and dependency-install/network side effects. For package runners such as `uv run` or `bunx`, report known sync/install/fetch behavior and prerequisites; otherwise mark them unverified.
-- Scope test-safety claims to the inspected target and fixture. Do not generalize one fixture's isolation to an entire suite unless the relevant suite behavior was checked; otherwise mark suite-level isolation unknown.
-- Keep unrelated mutating operations, such as database migrations or generated-client commands, out of the general build/test summary. If essential to the orientation, label their file/database side effects and that they were not run.
-- Do not run commands. If a detail cannot be verified within scope, mark it documentation-only or unknown; do not call it safe or isolated without evidence.
-
-Distinguish source-verified facts from inference and unknowns. The overview's `Sources` list must include the files actually read that support its claims; do not list unread files.
+Initialization does not assess build/test commands, test-fixture isolation, or runtime side effects. The overview may point to project documentation, but should say those details were not assessed; `/plan` verifies only what its task needs. Distinguish user-provided identity/scope from source-derived facts. List only existing files actually read to support overview claims.
 
 ## Prepare the profile and setup changes
 
@@ -131,15 +124,7 @@ Prepare only the following outputs as needed. Preserve existing content unless t
 
 ### Project overview
 
-Prepare `AgenticLab/PROJECT-OVERVIEW.md` as a compact navigation aid, not an exhaustive inventory. Use only verified information and include:
-
-- Project identity and actual coverage.
-- Stack, workspace layout, and useful starting points.
-- Build/test commands/configuration, explicitly marked as inspected but not run; include known isolation and safety details.
-- Material unknowns and exclusions.
-- A `Sources` list matching the files actually read.
-
-Do not include unconfirmed adjacent applications/packages or turn temporary orientation limits into permanent project rules. Do not add PBI history or unrelated implementation documents unless they directly support a useful orientation claim.
+Prepare `AgenticLab/PROJECT-OVERVIEW.md` as a compact navigation aid, not an exhaustive inventory. Separate user-provided identity/scope from a few source-supported facts about stack, layout, and entry points. List only existing files actually read that support those facts in `Sources`; do not list directories, directory listings, path-only identifications, user-provided facts, or files this preview will create. Build/test commands and their safety are not assessed during initialization; say so and leave those details to a relevant `/plan`. Do not include unconfirmed adjacent applications/packages, turn temporary orientation limits into permanent project rules, or add unrelated PBI/history details.
 
 ### Local Pi wiring
 
@@ -179,10 +164,10 @@ Project `.pi` resources require project trust and a fresh trusted Pi process. Do
 
 ### Knowledge scaffold
 
-- If `AgenticLab/knowledge/INDEX.md` is absent, prepare a scope-aware router identifying `records/` as the canonical destination for newly promoted project records; explain recursive active-record retrieval, including legacy root-level records during migration; state that a complete eligible-corpus scan—not map membership—is required for a no-match claim; and describe maps as optional navigation aids. Do not add transient active-record counts/status such as “no active records yet”: the INDEX is a durable router. It may state that initialization does not seed or promote records, but do not infer that the full eligible corpus is empty solely because `records/` is absent.
+- If `AgenticLab/knowledge/INDEX.md` is absent, prepare a scope-aware router identifying `records/` as the canonical destination for active/promoted project records only. Pending candidates are inactive and separate from `records/`; never describe them as stored in that collection. Explain recursive active-record retrieval, including legacy root-level records during migration; state that a complete eligible-corpus scan—not map membership—is required for a no-match claim; and describe maps as optional navigation aids. Do not add transient active-record counts/status such as “no active records yet”: the INDEX is a durable router. It may state that initialization does not seed or promote records, but do not infer that the full eligible corpus is empty solely because `records/` is absent.
 - If `AgenticLab/knowledge/INDEX.md` exists, preserve it. After scope confirmation, inspect only enough routing content to verify its scope is consistent; if it conflicts or is materially misleading, stop and show the conflict rather than replacing it.
 - If `AgenticLab/knowledge/records/` is absent, prepare an empty directory with a zero-byte `.gitkeep`. If it exists, preserve it without inspecting record contents.
-- If `AgenticLab/knowledge/maps/` exists, preserve it. If absent, prepare an empty directory with a zero-byte `.gitkeep`.
+- If `AgenticLab/knowledge/maps/` exists, preserve the directory and its contents; do not add a `.gitkeep` inside it. If the directory is absent, prepare it with a zero-byte `.gitkeep`.
 - If `AgenticLab/knowledge/MOC-template.md` exists, preserve it. If absent, prepare a minimal blank template consistent with `AgenticLab/brain/knowledge-contract.md`.
 - Do not create or copy active records, candidates, checkpoints, metrics, populated MOCs, or user notes.
 
@@ -196,8 +181,8 @@ Before presenting the preview, verify that:
 
 - Every application/package in `PROJECT-SCOPE.md` is within the user-confirmed scope; a whole-repository confirmation includes its subprojects, but discovering a sibling does not expand a narrower scope. The scope file contains names/paths and durable exclusions, not source-derived stack or test details.
 - No adjacent discovery expanded scope or became a permanent exclusion.
-- The overview describes only actual coverage and its `Sources` list matches the files read.
-- Every proposed path is marked create, update, or preserve; full contents are shown for creates and exact diffs for updates.
+- The overview separates user-provided identity/scope from source-supported facts, cites only existing files actually read, and leaves build/test commands and safety unassessed for task-specific `/plan` work.
+- The path inventory is based on exact-path existence checks: each path has one consistent action (Create only if absent, Preserve if existing, Update only when explicitly approved). A Preserve row for a directory covers its existing contents; do not list its children as separate actions. For every Create, show a `### <path>` heading followed by the exact full contents; a summary is not a substitute. Show exact diffs for Updates, and ensure counts and summary match the inventory. If any Create lacks full contents, the preview is incomplete: do not ask for approval.
 - Existing maps, MOC templates, records, and unrelated `.pi` settings are preserved.
 - The policy contains `project` equal to the confirmed key and `scope` equal to `project:<key>`, plus staging and metrics enabled unless explicitly opted out, and no unapproved triggers. Explain that staging saves only eligible candidates as inactive pending records; promotion is separately confirmed.
 - The preview contains only the setup paths listed in the preparation section; no other path is proposed.
@@ -207,7 +192,7 @@ Show one complete preview. End with exactly one short question:
 
 **“Approve these setup changes?”**
 
-Then stop. Do not write anything before explicit approval of that complete preview in a later user message. Answers to scope questions, optional preferences, silence, or review of a preview are not write approval. If the user requests a correction, revise the preview only; do not broaden source inspection unless the user explicitly expands scope. If scope changes, the old preview is invalid and a new preview is required.
+Then stop. Do not write anything before explicit approval of that complete preview in a later user message. Answers to scope questions, optional preferences, silence, or review of a preview are not write approval. If the user requests a correction, do not write; you may make exact-path, read-only checks within the already-confirmed included areas when needed to correct the preview. Do not inspect excluded/protected data or widen project scope. If a required source is outside the confirmed scope, ask before reading it. If scope changes, the old preview is invalid and a new preview is required.
 
 ## Apply and finish
 
