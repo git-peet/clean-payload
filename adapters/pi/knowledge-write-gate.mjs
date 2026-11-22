@@ -8,11 +8,23 @@ import {
   shellReferencesKnowledge,
   formatKnowledgeConfirmation,
 } from "./knowledge-write-policy.mjs";
+import { classifySensitivePathAccess } from "./sensitive-path-policy.mjs";
 
 export function registerKnowledgeWriteGate(pi) {
   const lookupState = new Map(); // keyed by "cwd|topicKey" → { count, lastSeen }
 
   pi.on("user_bash", async (event, ctx) => {
+    const sensitiveShell = await classifySensitivePathAccess("user_bash", event, ctx.cwd);
+    if (sensitiveShell) {
+      return {
+        result: {
+          output: sensitiveShell.reason,
+          exitCode: 126,
+          cancelled: false,
+          truncated: false,
+        },
+      };
+    }
     if (!await shellReferencesKnowledge(ctx.cwd, event.command)) return undefined;
     return {
       result: {
@@ -26,6 +38,9 @@ export function registerKnowledgeWriteGate(pi) {
 
   pi.on("tool_call", async (event, ctx) => {
     const toolName = event?.toolName;
+    const sensitiveAccess = await classifySensitivePathAccess(toolName, event.input, ctx.cwd);
+    if (sensitiveAccess) return { block: true, reason: sensitiveAccess.reason };
+
     if (toolName === "readKnowledgeRecords") {
       // Agent completed the knowledge lookup for this topic — clear any pending hard-trigger state.
       const input = event.input ?? {};
