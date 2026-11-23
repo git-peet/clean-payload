@@ -21,7 +21,7 @@ function normalizePathValue(value) {
   return typeof value === "string" ? value.replaceAll("\\", "/") : "";
 }
 
-function isProtectedEnvName(value) {
+export function isProtectedEnvName(value) {
   const normalized = normalizePathValue(value).replace(/\/+$/u, "");
   if (!normalized) return false;
   const base = path.posix.basename(normalized);
@@ -128,7 +128,7 @@ function directoryMayContainProtectedEnv(cwd, target) {
   });
 }
 
-async function resolveThroughExistingSymlinks(target) {
+export async function resolveThroughExistingSymlinks(target) {
   let current = path.resolve(target);
   const remainder = [];
   while (true) {
