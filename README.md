@@ -10,6 +10,8 @@ This directory is an uninitialized, workspace-independent AgenticLab payload. It
 - `config/knowledge-capture-policy.template.json` — generic defaults. First-use initialization renders the workspace policy at `config/knowledge-capture-policy.json` with the confirmed project scope; candidate staging and metrics default on, and users may opt out during initialization.
 - `knowledge/` — empty structural scaffold only; initialization creates the scope-aware `INDEX.md` and empty `records/` destination.
 - `prompts/system/initialize-workspace.md` — explicit first-use initialization prompt.
+- `prompts/system/` — opt-in `/initialize-workspace` (first-use setup) and `/refresh-payload`
+  (reviewed payload refresh with a revision and file manifest) prompts.
 - `prompts/delivery/` — opt-in `/plan`, `/implement`, and `/premortem` workflow prompts plus their checkpoint schema.
 - `helpers/` — reserved empty scaffold; no context-assembly implementation is shipped in this payload.
 

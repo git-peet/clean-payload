@@ -16,6 +16,7 @@ Initialization may prepare:
 3. Project-local `.pi/settings.json` and `.pi/APPEND_SYSTEM.md`.
 4. A knowledge index and empty directory scaffolding where absent.
 5. `AgenticLab/config/knowledge-capture-policy.json` rendered from the payload template.
+6. `AgenticLab/SOURCE-REVISION.json` recording the payload revision and a manifest of payload-owned files.
 
 The initialization request is **not** approval to write. Show one complete preview and obtain explicit approval in a later user message before writing anything. After approval, write only the exact paths and contents shown in that preview.
 
@@ -135,6 +136,7 @@ Prepare `.pi/settings.json` by preserving existing keys and adding only missing 
   "extensions": ["../AgenticLab/adapters/pi/knowledge-write-gate.ts"],
   "prompts": [
     "../AgenticLab/prompts/system/initialize-workspace.md",
+    "../AgenticLab/prompts/system/refresh-payload.md",
     "../AgenticLab/prompts/delivery/plan.md",
     "../AgenticLab/prompts/delivery/implement.md",
     "../AgenticLab/prompts/delivery/premortem.md"
@@ -142,7 +144,7 @@ Prepare `.pi/settings.json` by preserving existing keys and adding only missing 
 }
 ```
 
-If existing values are invalid or conflict, stop and show the conflict instead of replacing them. Before previewing this wiring, verify existence only for the exact registered targets: `AgenticLab/adapters/pi/knowledge-write-gate.ts` and the four listed prompt files. If any target is missing, stop and report the incomplete payload; do not inspect unrelated adapter or prompt files.
+If existing values are invalid or conflict, stop and show the conflict instead of replacing them. Before previewing this wiring, verify existence only for the exact registered targets: `AgenticLab/adapters/pi/knowledge-write-gate.ts` and the five listed prompt files. If any target is missing, stop and report the incomplete payload; do not inspect unrelated adapter or prompt files.
 
 Prepare `.pi/APPEND_SYSTEM.md` by preserving existing host content and adding the following AgenticLab block only if an equivalent block is not already present; do not duplicate it:
 
@@ -171,6 +173,16 @@ Project `.pi` resources require project trust and a fresh trusted Pi process. Do
 - If `AgenticLab/knowledge/MOC-template.md` exists, preserve it. If absent, prepare a minimal blank template consistent with `AgenticLab/brain/knowledge-contract.md`.
 - Do not create or copy active records, candidates, checkpoints, metrics, populated MOCs, or user notes.
 
+### Payload provenance
+
+Record the installed payload revision so later refreshes can detect local edits.
+
+- Prepare `AgenticLab/SOURCE-REVISION.json` containing the payload commit this workspace is initialized from and a sha256 manifest of every payload-owned file, produced by the comparison tool rather than by hand:
+  `node AgenticLab/adapters/pi/payload-refresh-cli.mjs --payload <payload-root> --record --revision <commit-id>`
+- `<payload-root>` is the directory whose contents became `AgenticLab/` (the reviewed payload snapshot). If no revision id is available, ask the user for it instead of inventing one; do not write a manifest without a revision.
+- Show the resulting file in the preview like any other created path, including the revision and the number of recorded files, not the per-file hashes.
+- If `AgenticLab/SOURCE-REVISION.json` already exists, preserve it and verify its `revision` matches the installed payload; stop on a mismatch rather than overwriting.
+
 ### Capture policy
 
 Render `AgenticLab/config/knowledge-capture-policy.json` from `AgenticLab/config/knowledge-capture-policy.template.json`. The generic template supplies defaults but has no workspace identity fields. In the rendered policy, always add `"project": "<confirmed-key>"` and `"scope": "project:<confirmed-key>"`; do not omit them, because the adapter otherwise falls back to its pilot scope. Preserve `schemaVersion: 1`, use `pendingStagingEnabled: true` and `metricsEnabled: true` unless the user explicitly opted out of either, and keep project-specific triggers empty. Metrics are aggregate and content-free; initialization emits none. If the template is missing, invalid, or unsafe, stop rather than inventing a policy. Preserve an existing policy; after scope confirmation, verify its project/scope match the confirmed key and stop if they conflict or are missing.
@@ -186,6 +198,7 @@ Before presenting the preview, verify that:
 - Existing maps, MOC templates, records, and unrelated `.pi` settings are preserved.
 - The policy contains `project` equal to the confirmed key and `scope` equal to `project:<key>`, plus staging and metrics enabled unless explicitly opted out, and no unapproved triggers. Explain that staging saves only eligible candidates as inactive pending records; promotion is separately confirmed.
 - The preview contains only the setup paths listed in the preparation section; no other path is proposed.
+- `AgenticLab/SOURCE-REVISION.json` records a real payload revision and a manifest produced by the comparison tool.
 - No host-application path, active record, candidate, checkpoint, metric, or populated MOC is proposed.
 
 Show one complete preview. End with exactly one short question:
