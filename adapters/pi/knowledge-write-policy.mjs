@@ -97,31 +97,51 @@ export async function classifyPilotPolicyMutation(toolName, input, cwd) {
   return null;
 }
 
-const READ_ONLY_SHELL_COMMANDS = new Set([
-  "ls", "cat", "less", "more", "head", "tail", "grep", "find", "read", "sed", "awk", "wc", "file", "stat", "realpath", "dirname", "basename"
+// Verbs that cannot write a file at all. Tools that can write (sed, awk, tee, cp,
+// rm, interpreters) are deliberately absent: parsing a record by shell is not the
+// supported read path, and flag-by-flag modelling of a text processor's program
+// text would leak cases such as `sed -n 'w out.txt'`.
+const SHELL_CANNOT_WRITE_COMMANDS = new Set([
+  "ls", "cat", "less", "more", "head", "tail", "grep", "read", "wc",
+  "file", "stat", "realpath", "dirname", "basename",
+]);
+
+// `find` is allowed only when it selects and prints; these actions write or execute.
+const FIND_ACTION_FLAGS = new Set([
+  "-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprint0", "-fprintf", "-fls",
 ]);
 
 const CHECKPOINT_SHELL_RELATIVE_PATH = "AgenticLab/knowledge/checkpoints/plan-checkpoint.json";
 const SHELL_SEGMENT_SPLIT = /&&|\|\||[;|\n]/u;
 const SHELL_NAVIGATION_COMMANDS = new Set(["cd", "pwd", "true"]);
+const SHELL_OUTPUT_REDIRECT = /(?:^|[^&<>])>>?(?![&])/u;
+
+/** A segment may be treated as a knowledge read only if it cannot write a file. */
+function segmentCannotWrite(segment) {
+  if (SHELL_OUTPUT_REDIRECT.test(segment)) return false;
+  const words = segment.match(/[^\s"'`;|&<>]+/gu) ?? [];
+  const verb = words[0]?.toLowerCase();
+  if (!verb) return false;
+  if (SHELL_NAVIGATION_COMMANDS.has(verb)) return true;
+  if (verb === "find") {
+    return !words.some((word) => FIND_ACTION_FLAGS.has(word.toLowerCase()));
+  }
+  return SHELL_CANNOT_WRITE_COMMANDS.has(verb);
+}
 
 /**
  * Read-only access to active knowledge is allowed. Evaluate every segment so a
- * normal `cd ... &&` prefix cannot turn an allowed read into a blocked command.
+ * normal `cd ... &&` prefix cannot turn an allowed read into a blocked command,
+ * and so a trailing write segment cannot ride along with an allowed read.
  */
-function shellIsReadOnly(command) {
+function shellCannotWrite(command) {
   const segments = command
     .replaceAll("\\", "/")
     .split(SHELL_SEGMENT_SPLIT)
     .map((segment) => segment.trim())
     .filter(Boolean);
   if (!segments.length) return false;
-  return segments.every((segment) => {
-    const words = segment.match(/[^\s"'`;|&<>]+/gu) ?? [];
-    const verb = words[0]?.toLowerCase();
-    if (!verb) return false;
-    return READ_ONLY_SHELL_COMMANDS.has(verb) || SHELL_NAVIGATION_COMMANDS.has(verb);
-  });
+  return segments.every(segmentCannotWrite);
 }
 
 /**
@@ -174,7 +194,7 @@ export async function shellReferencesKnowledge(cwd, command) {
 
   // Read-only shell access to active knowledge records is allowed for retrieval.
   // Only writes/mutations go through the preview+confirmation gate.
-  if (mentionsKnowledge && shellIsReadOnly(command)) return false;
+  if (mentionsKnowledge && shellCannotWrite(command)) return false;
 
   // Exception: allow rm specifically for the transitory plan-checkpoint file when user-approved.
   // Must come BEFORE the blanket mentionsKnowledge block. A `cd ... &&` prefix is normal
@@ -221,7 +241,7 @@ export async function shellReferencesKnowledge(cwd, command) {
   if (mentionsPackageContext && (mentionsPendingWords || mentionsPolicyWords)) return true;
 
   // Read-only lexical access to active knowledge is allowed.
-  if (mentionsPackageContext && mentionsActiveKnowledgeWords && shellIsReadOnly(command)) return false;
+  if (mentionsPackageContext && mentionsActiveKnowledgeWords && shellCannotWrite(command)) return false;
 
   // Exception already handled earlier (line ~130). No redeclaration here.
 

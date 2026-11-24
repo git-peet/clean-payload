@@ -37,6 +37,10 @@ const READ_ONLY_GIT_COMMANDS = new Set([
   "ls-files", "cat-file", "help", "version",
 ]);
 const EXTERNAL_COMMANDS = new Set(["curl", "wget", "scp", "rsync", "ssh", "gh"]);
+// `find` selects unless it carries an action; these actions write or execute.
+const FIND_ACTION_FLAGS = new Set([
+  "-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprint0", "-fprintf", "-fls",
+]);
 
 function asStringList(value) {
   if (!Array.isArray(value)) return [];
@@ -148,7 +152,7 @@ function looksLikePathToken(word, command) {
   if (command === "sed" && /^s[:/|@]/u.test(word)) return false;
   if (word.includes("/") || word.includes(".")) return true;
   // Bare names are meaningful targets only for commands that take paths.
-  return ALWAYS_MUTATING_COMMANDS.has(command);
+  return ALWAYS_MUTATING_COMMANDS.has(command) || command === "find";
 }
 
 function classifyShellMutation(segment) {
@@ -176,7 +180,18 @@ function classifyShellMutation(segment) {
     };
   }
 
-  if (command === "sed" && !words.includes("-i")) return { mutating: false, words };
+  if (command === "find" && words.some((word) => FIND_ACTION_FLAGS.has(word.toLowerCase()))) {
+    return { mutating: true, words, command };
+  }
+
+  if (command === "sed") {
+    // `sed` edits in place with -i/--in-place (including combined and suffixed forms).
+    const inPlace = words.some((word) => word === "--in-place"
+      || word.startsWith("--in-place=")
+      || /^-[a-zA-Z]*i/u.test(word));
+    if (!inPlace) return { mutating: false, words };
+    return { mutating: true, words, command };
+  }
   if (command === "rm" && words.some((word) => /^-[a-z]*r/u.test(word) || word === "--recursive")) {
     return { mutating: true, words, command, recursiveDelete: true };
   }
