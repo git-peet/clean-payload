@@ -17,6 +17,12 @@ Never touched by a refresh: `.pi/`, `AgenticLab/PROJECT-SCOPE.md`, `AgenticLab/P
 
 This workflow does not install, reset, roll back, delete obsolete paths, or change global Pi configuration.
 
+## Payload to install
+
+${@:-No payload directory was supplied. Ask the user for the absolute path of the payload to install. Do not search the filesystem for candidate payloads, and do not substitute a path that was not named.}
+
+Use that path exactly as given. A named payload that does not exist is a failure to report, not a reason to look elsewhere.
+
 ## 1. Deterministic preview
 
 Run the comparison tool — do not diff files by hand:
@@ -34,7 +40,7 @@ node <payload-dir>/adapters/pi/payload-refresh-cli.mjs --payload <payload-dir> -
 Read its JSON result:
 
 - `status: "unrecorded"` — this workspace predates refresh support. Stop and report; recording a baseline needs explicit approval, because it would declare the current tree canonical.
-- `status: "noop"` — same revision and no changed files. Report and stop.
+- `status: "noop"` — no added and no replaced files. Report and stop. An unknown incoming revision label does not by itself make a refresh non-trivial; trust the file lists, not the labels.
 - `status: "changes"` — show the counts and the `added`, `replaced`, and `obsolete` lists.
 - `status: "conflict"` — stop. List every path in `conflicts`. A conflict means the installed file no longer matches its recorded hash, so it was edited locally or the tree is not the recorded revision.
 
@@ -58,7 +64,9 @@ Do not apply anything before that approval. Do not ask a second question for the
 
 ## 4. Apply, then verify
 
-After approval, in this order:
+Immediately before applying, re-run the preview command and compare it with the approved result. Abort and report if any path moved between `added`, `replaced`, or `conflicts`, or if the installed revision changed. The preview is not atomic with the apply, and a baseline re-recorded in between could mask a local edit as safe-to-overwrite.
+
+After approval and that re-check, in this order:
 
 1. Replace exactly the approved `replaced` paths and create exactly the approved `added` paths from the payload directory.
 2. Verify each written file is byte-identical to its payload source.

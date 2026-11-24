@@ -24,9 +24,10 @@ const UNMANAGED_PREFIXES = [
   "implementation-logs/",
   "helpers/",
 ];
+// The generic template is payload-owned; the rendered policy beside it is
+// workspace-owned and must never be refreshed over.
 const UNMANAGED_FILES = [
   "config/knowledge-capture-policy.json",
-  "config/knowledge-capture-policy.template.json",
   "knowledge/INDEX.md",
   "knowledge/MOC-template.md",
   "knowledge/.gitkeep",
@@ -161,15 +162,21 @@ export function classifyRefresh({ installed, incoming, recorded }) {
   return { added, replaced, unchanged, obsolete, conflicts, missing };
 }
 
-/** Build the user-facing summary the prompt presents before approval. */
+/**
+ * Build the user-facing summary the prompt presents before approval.
+ *
+ * `status` is derived from file differences, not from revision labels: a payload
+ * directory carries no commit id, so comparing labels would report "changes"
+ * whenever the incoming revision is unknown even with nothing to apply.
+ */
 export function summarizeRefresh({ installedRevision, incomingRevision, result }) {
-  const same = installedRevision === incomingRevision;
   const clean = !result.conflicts.length;
-  const noop = same && !result.added.length && !result.replaced.length;
+  const pending = result.added.length + result.replaced.length;
   return {
-    status: result.conflicts.length ? "conflict" : (noop ? "noop" : "changes"),
+    status: result.conflicts.length ? "conflict" : (pending ? "changes" : "noop"),
     installedRevision,
     incomingRevision,
+    incomingRevisionKnown: typeof incomingRevision === "string" && incomingRevision !== "payload-under-comparison",
     clean,
     counts: {
       added: result.added.length,
