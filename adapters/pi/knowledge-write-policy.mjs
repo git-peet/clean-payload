@@ -104,6 +104,8 @@ export async function classifyPilotPolicyMutation(toolName, input, cwd) {
 const SHELL_CANNOT_WRITE_COMMANDS = new Set([
   "ls", "cat", "less", "more", "head", "tail", "grep", "read", "wc",
   "file", "stat", "realpath", "dirname", "basename",
+  // Print-only builtins; output redirection is rejected separately.
+  "echo", "printf",
 ]);
 
 // `find` is allowed only when it selects and prints; these actions write or execute.
@@ -161,10 +163,10 @@ function isPlanCheckpointRemoval(command) {
 
   let removals = 0;
   for (const segment of segments) {
+    if (segmentCannotWrite(segment)) continue;
     const words = segment.match(/[^\s"'`;|&<>]+/gu) ?? [];
     if (!words.length) continue;
     const verb = words[0].toLowerCase();
-    if (SHELL_NAVIGATION_COMMANDS.has(verb)) continue;
     if (verb !== "rm" || removals > 0) return false;
     const flags = words.slice(1).filter((word) => word.startsWith("-"));
     if (flags.some((flag) => flag === "--recursive" || /^-[a-z]*[rR]/u.test(flag))) return false;

@@ -25,7 +25,18 @@ const DISARM_COMMAND = /^\/(?:plan|premortem|initialize-workspace)(?:\s|$)/u;
 
 const SHELL_SEGMENT_SPLIT = /&&|\|\||[;|\n]/u;
 const SHELL_WORD_SPLIT = /[^\s"'`;|&<>]+/gu;
-const REDIRECT_WRITE = /(?:^|[^&<>])>>?(?![&])/u;
+// A redirect to /dev/null or to a file descriptor (`2>&1`) discards output; it
+// does not write a workspace file, so `ls ... 2>/dev/null` must stay read-only.
+const REDIRECT_TARGET = /(?:^|[^&<>])>>?\s*([^\s;|&<>]+)/u;
+
+function hasWritingRedirect(segment) {
+  const match = segment.match(REDIRECT_TARGET);
+  if (!match) return false;
+  const target = match[1];
+  if (/^\/dev\/null$/u.test(target)) return false;
+  if (/^&\d*$/u.test(target)) return false;
+  return true;
+}
 
 const WRAPPER_COMMANDS = new Set(["sudo", "env", "command", "time", "exec"]);
 const ALWAYS_MUTATING_COMMANDS = new Set([
@@ -198,7 +209,7 @@ function classifyShellMutation(segment) {
   if (ALWAYS_MUTATING_COMMANDS.has(command)) {
     return { mutating: true, words, command };
   }
-  if (REDIRECT_WRITE.test(segment)) return { mutating: true, words, command };
+  if (hasWritingRedirect(segment)) return { mutating: true, words, command };
   return { mutating: false, words, command };
 }
 
