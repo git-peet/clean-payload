@@ -178,8 +178,8 @@ Project `.pi` resources require project trust and a fresh trusted Pi process. Do
 Record the installed payload revision so later refreshes can detect local edits.
 
 - Prepare `AgenticLab/SOURCE-REVISION.json` containing the payload commit this workspace is initialized from and a sha256 manifest of every payload-owned file, produced by the comparison tool rather than by hand:
-  `node AgenticLab/adapters/pi/payload-refresh-cli.mjs --payload <payload-root> --record --revision <commit-id>`
-- `<payload-root>` is the directory whose contents became `AgenticLab/` (the reviewed payload snapshot). If no revision id is available, ask the user for it instead of inventing one; do not write a manifest without a revision.
+  `node AgenticLab/adapters/pi/payload-refresh-cli.mjs --record --revision <commit-id>`
+- Recording reads the installed `AgenticLab/` tree, so no separate payload snapshot directory is needed at this point. If no revision id is available, ask the user for it instead of inventing one; do not write a manifest without a revision.
 - Show the resulting file in the preview like any other created path, including the revision and the number of recorded files, not the per-file hashes.
 - If `AgenticLab/SOURCE-REVISION.json` already exists, preserve it and verify its `revision` matches the installed payload; stop on a mismatch rather than overwriting.
 

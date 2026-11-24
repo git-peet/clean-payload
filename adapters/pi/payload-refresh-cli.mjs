@@ -14,7 +14,7 @@ import {
  *
  * Usage:
  *   node AgenticLab/adapters/pi/payload-refresh-cli.mjs --payload <dir>
- *   node AgenticLab/adapters/pi/payload-refresh-cli.mjs --payload <dir> --record --revision <id>
+ *   node AgenticLab/adapters/pi/payload-refresh-cli.mjs --record --revision <id>
  *
  * The command only reads and reports unless --record is passed. Applying a
  * refresh is the caller's job, after approval.
@@ -38,12 +38,10 @@ function fail(message) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-if (!options.payload) fail("--payload <dir> is required");
-const payloadRoot = path.resolve(options.payload);
 const installedRoot = path.resolve(options.cwd, "AgenticLab");
 
-const incoming = await collectManifest(payloadRoot);
-
+// Recording only describes the installed tree, so it must work during first
+// initialization, before any payload snapshot directory is available.
 if (options.record) {
   if (!options.revision) fail("--record also needs --revision <commit-id>");
   const installed = await collectManifest(installedRoot);
@@ -55,6 +53,10 @@ if (options.record) {
   })}\n`);
   process.exit(0);
 }
+
+if (!options.payload) fail("--payload <dir> is required for a preview");
+const payloadRoot = path.resolve(options.payload);
+const incoming = await collectManifest(payloadRoot);
 
 let installedRevision;
 let recorded;
