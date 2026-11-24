@@ -78,6 +78,23 @@ function hasLuhnCardNumber(text) {
   });
 }
 
+// Tokens that identify this installation rather than the host project. A record
+// about AgenticLab's own paths or workflow belongs in the canonical AgenticLab
+// repository, not in target-project knowledge.
+const SYSTEM_SUBJECT_PATTERN = /(?:agenticlab|\.pi\/|knowledge-pending|implementation-logs|plan-checkpoint|knowledge\/records)/iu;
+
+/**
+ * True when a candidate's own subject is this installation. Only the title and
+ * claim are inspected: evidence may legitimately quote a project file that also
+ * mentions these paths.
+ */
+export function describesSystemBehavior(candidate) {
+  if (!candidate || typeof candidate !== "object") return false;
+  const subjects = [candidate.title, candidate.claim]
+    .filter((value) => typeof value === "string" && value.trim());
+  return subjects.some((value) => SYSTEM_SUBJECT_PATTERN.test(value));
+}
+
 const PRIVATE_QUEUE_SEGMENT = "knowledge-pending";
 
 /**
@@ -163,6 +180,9 @@ export function validateCandidate(candidate, expectedScope = PILOT_SCOPE) {
   const serialized = JSON.stringify(candidate);
   if (Buffer.byteLength(serialized, "utf8") > MAX_RECORD_BYTES) fail(`candidate exceeds ${MAX_RECORD_BYTES} bytes`);
   if (referencesPrivateQueue(serialized)) fail("candidate content cannot link to the private pending queue");
+  if (describesSystemBehavior(candidate)) {
+    fail("candidate describes AgenticLab's own installation or workflow; record that in the canonical AgenticLab repository, not as target-project knowledge");
+  }
   if (containsSensitiveValue(serialized)) fail("candidate contains a value matching a sensitive-data pattern");
   return candidate;
 }

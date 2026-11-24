@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   containsSensitiveValue,
+  describesSystemBehavior,
   getCapturePolicy,
   MAX_CANDIDATES,
   MAX_RECORD_BYTES,
@@ -96,6 +97,9 @@ function validateObservation(observation) {
   const serialized = JSON.stringify(observation);
   if (Buffer.byteLength(serialized, "utf8") > MAX_RECORD_BYTES) throw new Error(`candidate ${observation.id} exceeds ${MAX_RECORD_BYTES} bytes`);
   if (referencesPrivateQueue(serialized)) throw new Error(`candidate ${observation.id} cannot link to the private pending queue`);
+  if (describesSystemBehavior(observation)) {
+    throw new Error(`candidate ${observation.id} describes AgenticLab's own installation or workflow; record that in the canonical AgenticLab repository, not as target-project knowledge`);
+  }
   if (containsSensitiveValue(serialized)) throw new Error(`candidate ${observation.id} contains a value matching a sensitive-data pattern`);
   return observation;
 }
