@@ -106,6 +106,13 @@ const SHELL_CANNOT_WRITE_COMMANDS = new Set([
   "file", "stat", "realpath", "dirname", "basename",
   // Print-only builtins; output redirection is rejected separately.
   "echo", "printf",
+  // Query-only system info. `date` is checked for its setting flags below.
+  "date", "whoami", "id", "uname", "hostname", "nproc", "tty",
+]);
+
+// Verbs in SHELL_CANNOT_WRITE_COMMANDS that can still change state with a flag.
+const VERB_SETTING_FLAGS = new Map([
+  ["date", new Set(["-s", "--set"])],
 ]);
 
 // `find` is allowed only when it selects and prints; these actions write or execute.
@@ -127,6 +134,13 @@ function segmentCannotWrite(segment) {
   if (SHELL_NAVIGATION_COMMANDS.has(verb)) return true;
   if (verb === "find") {
     return !words.some((word) => FIND_ACTION_FLAGS.has(word.toLowerCase()));
+  }
+  const settingFlags = VERB_SETTING_FLAGS.get(verb);
+  if (settingFlags) {
+    const setsState = words.some((word) => [...settingFlags].some(
+      (flag) => word === flag || word.startsWith(`${flag}=`),
+    ));
+    if (setsState) return false;
   }
   return SHELL_CANNOT_WRITE_COMMANDS.has(verb);
 }

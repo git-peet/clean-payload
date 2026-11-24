@@ -15,6 +15,9 @@ const SHELL_CONTENT_COMMANDS = new Set([
   "tar", "zip", "unzip",
 ]);
 
+// These take a pattern before any path, so their first bare argument is not a target.
+const SHELL_PATTERN_FIRST_COMMANDS = new Set(["grep", "rg"]);
+
 const BLOCK_REASON = "Sensitive environment files are protected. Content reads, searches, edits, copies, and reports of .env/.env.* files are blocked; .env.example and metadata-only checks remain allowed.";
 
 function normalizePathValue(value) {
@@ -171,9 +174,14 @@ export async function classifySensitivePathAccess(toolName, input, cwd) {
       const words = segmentWords(segment);
       if (segmentIsMetadataOnly(words)) continue;
       if (words.some(tokenReferencesProtectedEnv)) return blocked();
-      if (SHELL_CONTENT_COMMANDS.has(segmentCommand(words))) {
-        for (const word of words) {
-          if (word.startsWith("-") || word.includes("=")) continue;
+      const segmentVerb = segmentCommand(words);
+      if (SHELL_CONTENT_COMMANDS.has(segmentVerb)) {
+        const argumentWords = words.filter((word) => !word.startsWith("-") && !word.includes("="));
+        const verbIndex = argumentWords.findIndex((word) => word.toLowerCase() === segmentVerb);
+        let targets = verbIndex >= 0 ? argumentWords.slice(verbIndex + 1) : argumentWords;
+        // For grep/rg the first bare argument is the pattern, not a path.
+        if (SHELL_PATTERN_FIRST_COMMANDS.has(segmentVerb) && targets.length) targets = targets.slice(1);
+        for (const word of targets) {
           if (directoryMayContainProtectedEnv(cwd, path.resolve(cwd, word))) return blocked();
         }
       }

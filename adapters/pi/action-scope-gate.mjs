@@ -1,3 +1,6 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+
 import {
   classifyActionScope,
   classifyImplementationInput,
@@ -19,6 +22,25 @@ export function registerActionScopeGate(pi) {
 
   pi.on("session_start", () => {
     armed = false;
+  });
+
+  /**
+   * The approved implementation log is the workflow's own completion marker: it is
+   * inside approved scope and is written at the end. Once it exists, the plan has
+   * been executed and enforcement is released so later default work is not blocked
+   * by a stale scope. A missing checkpoint keeps failing closed, as before.
+   */
+  pi.on("agent_settled", async (_event, ctx) => {
+    if (!armed) return;
+    try {
+      const scope = await readApprovedScope(ctx.cwd);
+      const logPath = scope.inScope.find((entry) => entry.includes(`${path.sep}implementation-logs${path.sep}`));
+      if (!logPath) return;
+      await fs.access(logPath);
+      armed = false;
+    } catch {
+      // Keep the gate armed: an unreadable scope must not release protection.
+    }
   });
 
   pi.on("input", async (event) => {
