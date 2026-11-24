@@ -101,11 +101,60 @@ const READ_ONLY_SHELL_COMMANDS = new Set([
   "ls", "cat", "less", "more", "head", "tail", "grep", "find", "read", "sed", "awk", "wc", "file", "stat", "realpath", "dirname", "basename"
 ]);
 
-function isReadOnlyShellCommand(command) {
-  const normalized = command.trim().replaceAll("\\", "/");
-  const firstWord = normalized.split(/[\s]+/u)[0];
-  if (!firstWord) return false;
-  return READ_ONLY_SHELL_COMMANDS.has(firstWord.toLowerCase());
+const CHECKPOINT_SHELL_RELATIVE_PATH = "AgenticLab/knowledge/checkpoints/plan-checkpoint.json";
+const SHELL_SEGMENT_SPLIT = /&&|\|\||[;|\n]/u;
+const SHELL_NAVIGATION_COMMANDS = new Set(["cd", "pwd", "true"]);
+
+/**
+ * Read-only access to active knowledge is allowed. Evaluate every segment so a
+ * normal `cd ... &&` prefix cannot turn an allowed read into a blocked command.
+ */
+function shellIsReadOnly(command) {
+  const segments = command
+    .replaceAll("\\", "/")
+    .split(SHELL_SEGMENT_SPLIT)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (!segments.length) return false;
+  return segments.every((segment) => {
+    const words = segment.match(/[^\s"'`;|&<>]+/gu) ?? [];
+    const verb = words[0]?.toLowerCase();
+    if (!verb) return false;
+    return READ_ONLY_SHELL_COMMANDS.has(verb) || SHELL_NAVIGATION_COMMANDS.has(verb);
+  });
+}
+
+/**
+ * Recognize the approved `/implement` completion step that removes the transient
+ * plan checkpoint. The whole command may be prefixed with navigation (`cd ... &&`),
+ * but every other segment must itself be navigation, and the removal must be a plain
+ * `rm` of exactly that one path. No flags, globs, redirection, or extra mutations.
+ */
+function isPlanCheckpointRemoval(command) {
+  if (typeof command !== "string" || !command.trim()) return false;
+  const segments = command
+    .replaceAll("\\", "/")
+    .split(SHELL_SEGMENT_SPLIT)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (!segments.length) return false;
+
+  let removals = 0;
+  for (const segment of segments) {
+    const words = segment.match(/[^\s"'`;|&<>]+/gu) ?? [];
+    if (!words.length) continue;
+    const verb = words[0].toLowerCase();
+    if (SHELL_NAVIGATION_COMMANDS.has(verb)) continue;
+    if (verb !== "rm" || removals > 0) return false;
+    const flags = words.slice(1).filter((word) => word.startsWith("-"));
+    if (flags.some((flag) => flag === "--recursive" || /^-[a-z]*[rR]/u.test(flag))) return false;
+    const targets = words.slice(1).filter((word) => !word.startsWith("-") && !word.includes("="));
+    if (targets.length !== 1) return false;
+    const target = targets[0].replace(/^\.\//u, "").replace(/\/+$/u, "");
+    if (target !== CHECKPOINT_SHELL_RELATIVE_PATH && !target.endsWith(`/${CHECKPOINT_SHELL_RELATIVE_PATH}`)) return false;
+    removals += 1;
+  }
+  return removals === 1;
 }
 
 export async function shellReferencesKnowledge(cwd, command) {
@@ -125,12 +174,12 @@ export async function shellReferencesKnowledge(cwd, command) {
 
   // Read-only shell access to active knowledge records is allowed for retrieval.
   // Only writes/mutations go through the preview+confirmation gate.
-  if (mentionsKnowledge && isReadOnlyShellCommand(command)) return false;
+  if (mentionsKnowledge && shellIsReadOnly(command)) return false;
 
   // Exception: allow rm specifically for the transitory plan-checkpoint file when user-approved.
-  // Must come BEFORE the blanket mentionsKnowledge block.
-  const isRmCheckpoint = typeof command === "string" && command.trim().startsWith("rm ") && command.includes("AgenticLab/knowledge/checkpoints/plan-checkpoint.json");
-  if (isRmCheckpoint) return false;
+  // Must come BEFORE the blanket mentionsKnowledge block. A `cd ... &&` prefix is normal
+  // shell usage and must not defeat the exception, but any other mutation must.
+  if (isPlanCheckpointRemoval(command)) return false;
 
   if (mentionsKnowledge) return true;
 
@@ -172,7 +221,7 @@ export async function shellReferencesKnowledge(cwd, command) {
   if (mentionsPackageContext && (mentionsPendingWords || mentionsPolicyWords)) return true;
 
   // Read-only lexical access to active knowledge is allowed.
-  if (mentionsPackageContext && mentionsActiveKnowledgeWords && isReadOnlyShellCommand(command)) return false;
+  if (mentionsPackageContext && mentionsActiveKnowledgeWords && shellIsReadOnly(command)) return false;
 
   // Exception already handled earlier (line ~130). No redeclaration here.
 

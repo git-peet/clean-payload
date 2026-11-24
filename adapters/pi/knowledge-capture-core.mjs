@@ -78,6 +78,27 @@ function hasLuhnCardNumber(text) {
   });
 }
 
+const PRIVATE_QUEUE_SEGMENT = "knowledge-pending";
+
+/**
+ * Reject a candidate that points at a file inside the private pending queue.
+ * A bare mention of the queue directory (for example a quoted `.gitignore`
+ * pattern such as `/knowledge-pending/`) is metadata, not a link, so it stays
+ * allowed. Only a path that descends into the queue is treated as a reference.
+ */
+export function referencesPrivateQueue(value) {
+  const serialized = typeof value === "string" ? value : JSON.stringify(value);
+  if (typeof serialized !== "string" || !serialized) return false;
+  const lower = serialized.toLowerCase();
+  let index = lower.indexOf(PRIVATE_QUEUE_SEGMENT);
+  while (index !== -1) {
+    const after = serialized.slice(index + PRIVATE_QUEUE_SEGMENT.length);
+    if (/^\/+[^\s"'`,;)\]}\/]+/u.test(after)) return true;
+    index = lower.indexOf(PRIVATE_QUEUE_SEGMENT, index + PRIVATE_QUEUE_SEGMENT.length);
+  }
+  return false;
+}
+
 /** Deterministic pattern checks catch common credential forms; they are a defense-in-depth filter, not a guarantee that sensitive data is absent. */
 export function containsSensitiveValue(value) {
   if (typeof value !== "string") return false;
@@ -141,7 +162,7 @@ export function validateCandidate(candidate, expectedScope = PILOT_SCOPE) {
 
   const serialized = JSON.stringify(candidate);
   if (Buffer.byteLength(serialized, "utf8") > MAX_RECORD_BYTES) fail(`candidate exceeds ${MAX_RECORD_BYTES} bytes`);
-  if (/knowledge-pending/iu.test(serialized)) fail("candidate content cannot link to or depend on the private pending queue");
+  if (referencesPrivateQueue(serialized)) fail("candidate content cannot link to the private pending queue");
   if (containsSensitiveValue(serialized)) fail("candidate contains a value matching a sensitive-data pattern");
   return candidate;
 }

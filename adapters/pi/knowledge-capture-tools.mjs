@@ -11,6 +11,7 @@ import {
   promoteCandidate,
   previewPendingCandidate,
   readKnowledge,
+  referencesPrivateQueue,
   rejectCandidate,
   setCaptureEnabled,
   stageCandidates,
@@ -94,7 +95,7 @@ function validateObservation(observation) {
 
   const serialized = JSON.stringify(observation);
   if (Buffer.byteLength(serialized, "utf8") > MAX_RECORD_BYTES) throw new Error(`candidate ${observation.id} exceeds ${MAX_RECORD_BYTES} bytes`);
-  if (/knowledge-pending/iu.test(serialized)) throw new Error(`candidate ${observation.id} cannot link to the private pending queue`);
+  if (referencesPrivateQueue(serialized)) throw new Error(`candidate ${observation.id} cannot link to the private pending queue`);
   if (containsSensitiveValue(serialized)) throw new Error(`candidate ${observation.id} contains a value matching a sensitive-data pattern`);
   return observation;
 }
