@@ -30,6 +30,8 @@ Project records belong to exactly one target workspace and must not be copied in
 
 Use only fields necessary to make this record reviewable and safe. Category is the record's primary information type; topic/domain membership belongs in map links, not a second required topic field in this baseline. If a single observation contains distinct claims of different types, prefer separate linked records. Do not create a fact simply because a source file was read; ordinary code facts are normally re-derivable from current source and need not be persisted.
 
+When a record defines a convention, output format, or procedure, include one short worked example showing the expected result. A rule stated only in prose is easy to reinterpret or drift from; an example makes the expected shape concrete, checkable, and comparable against later work.
+
 ## Indexes, maps, and collections
 
 `INDEX.md` is the stable workspace router. It identifies the project scope, points to topic/domain maps, and names the authoritative record collection(s). For a tiny workspace it may link directly to a high-value record, but do not make a per-record exhaustive list its only retrieval path. Multiple maps/collections may be nested or added over time; keep each collection's owner, scope, purpose, and lifecycle explicit.
