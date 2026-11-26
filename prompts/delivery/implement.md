@@ -49,15 +49,15 @@ Do not delete `AgenticLab/knowledge/checkpoints/plan-checkpoint.json` during thi
 
 After staging and the promotion review, verify only the candidate IDs created by this run using pending-candidate metadata. Do not enumerate or review unrelated pending candidates. If promotion is declined, leave the candidate pending. Do not promote, reject, or discard any candidate without the corresponding adapter action preview and explicit UI confirmation. Do not persist raw queries or candidate contents in metrics or implementation logs.
 
+### Standard implementation log
+
+The approved plan includes `AgenticLab/implementation-logs/<workspace-key>/<task-slug>/implementation-log.md` in its implementation scope. After implementation validation and candidate promotion review, always write or append a concise log for this `/implement` run without a separate approval prompt; the explicit `/implement` invocation authorizes this planned output. Record changed paths, validation commands/results or why validation was blocked, and knowledge disposition. Add the checkpoint disposition only after the user answers the approval gate below; record that answer without re-running validation. Never include secrets, raw transcripts, customer data, or raw candidate contents. If a log already exists, append a dated run section and preserve prior history; do not overwrite it. If the approved log path is unavailable or a safe append cannot be performed, stop and report the problem rather than asking for a second approval.
+
 ### User approval gate — checkpoint deletion
 
-After implementation validation and candidate promotion review, ask the user to choose one checkpoint disposition:
+After the implementation log exists, ask the user to choose one checkpoint disposition:
 
 > A) Keep `plan-checkpoint.json` for `/premortem` reference.
 > B) I am not planning to run `/premortem`; I authorize deleting `plan-checkpoint.json`.
 
-Do not infer the choice. Keep the checkpoint unchanged until the user answers. Delete it only after explicit B; retain it after A. Then write the standard implementation log and provide the completion report.
-
-### Standard implementation log
-
-The approved plan includes `AgenticLab/implementation-logs/<workspace-key>/<task-slug>/implementation-log.md` in its implementation scope. After the checkpoint disposition is resolved, always write or append a concise log for this `/implement` run without a separate approval prompt; the explicit `/implement` invocation authorizes this planned output. Record changed paths, validation commands/results or why validation was blocked, knowledge disposition, and checkpoint disposition. Never include secrets, raw transcripts, customer data, or raw candidate contents. If a log already exists, append a dated run section and preserve prior history; do not overwrite it. If the approved log path is unavailable or a safe append cannot be performed, stop and report the problem rather than asking for a second approval.
+Do not infer the choice. Keep the checkpoint unchanged until the user answers. Delete it only after explicit B; retain it after A. Then provide the completion report. This order is safety-critical: deleting the checkpoint before the log is written removes the action-scope gate's ability to verify the approved log path.
